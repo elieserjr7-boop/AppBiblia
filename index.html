@@ -1583,7 +1583,7 @@
             
             /* Ajuste fino: se a tela for pequena, diminui o espaço do topo */
             #modal-comparacao {
-                padding-top: 60px !important; 
+                padding-top: 30px !important; 
             }
         }
         
@@ -4482,6 +4482,42 @@
             // Limpa o input para permitir selecionar o mesmo arquivo novamente se falhar
             inputElement.value = '';
         }
+
+        function forcarReparoLayout() {
+            console.log("Tentando recalibrar layout...");
+            
+            // Espera um tiquinho para o Android processar a tela
+            setTimeout(() => {
+                // 1. Simula um redimensionamento de janela
+                window.dispatchEvent(new Event('resize'));
+
+                // 2. O truque do pixel (move e volta)
+                const scrollY = window.scrollY;
+                window.scrollTo(0, scrollY + 1);
+                window.scrollTo(0, scrollY);
+            }, 300); // 300ms é um tempo seguro
+        }
+
+        // --- GATILHOS (Quem chama a função) ---
+
+        // 1. Quando o usuário troca o tema nas configurações (com o app aberto)
+        const mudancaTema = window.matchMedia('(prefers-color-scheme: dark)');
+        try {
+            mudancaTema.addEventListener('change', forcarReparoLayout);
+        } catch (e) {
+            mudancaTema.addListener(forcarReparoLayout); // Para Androids velhos
+        }
+
+        // 2. Assim que o site termina de carregar (Garante que abre certo)
+        window.addEventListener('load', forcarReparoLayout);
+
+        // 3. Quando você sai do app e volta (Ex: foi no Zap e voltou)
+        // Isso é crucial, pois muitas vezes o bug acontece nessa volta.
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                forcarReparoLayout();
+            }
+        });
         
         iniciarApp();
     </script>
