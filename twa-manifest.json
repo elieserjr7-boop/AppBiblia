@@ -5,11 +5,11 @@
   "launcherName": "Bíblia",
   "display": "standalone",
   "themeColor": "#2C3E50",
-  "themeColorDark": "#000000",
-  "navigationColor": "#000000",
-  "navigationColorDark": "#000000",
-  "navigationDividerColor": "#000000",
-  "navigationDividerColorDark": "#000000",
+  "themeColorDark": "#2C3E50",
+  "navigationColor": "#2C3E50",
+  "navigationColorDark": "#2C3E50",
+  "navigationDividerColor": "#2C3E50",
+  "navigationDividerColorDark": "#2C3E50",
   "backgroundColor": "#FFFFFF",
   "enableNotifications": true,
   "startUrl": "/AppBiblia/",
@@ -20,8 +20,8 @@
     "path": "/workspaces/AppBiblia/android.keystore",
     "alias": "android"
   },
-  "appVersionName": "2",
-  "appVersionCode": 2,
+  "appVersionName": "3",
+  "appVersionCode": 3,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://elieserjr7-boop.github.io/AppBiblia/manifest.json",
@@ -43,5 +43,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "2"
+  "appVersion": "3"
 }

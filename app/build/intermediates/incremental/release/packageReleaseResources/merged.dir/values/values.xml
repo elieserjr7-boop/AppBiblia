@@ -4,11 +4,11 @@
     <bool name="enableSiteSettingsShortcut">true</bool>
     <color name="backgroundColor">#FFFFFF</color>
     <color name="colorPrimary">#2C3E50</color>
-    <color name="colorPrimaryDark">#000000</color>
-    <color name="navigationColor">#000000</color>
-    <color name="navigationColorDark">#000000</color>
-    <color name="navigationDividerColor">#000000</color>
-    <color name="navigationDividerColorDark">#000000</color>
+    <color name="colorPrimaryDark">#2C3E50</color>
+    <color name="navigationColor">#2C3E50</color>
+    <color name="navigationColorDark">#2C3E50</color>
+    <color name="navigationDividerColor">#2C3E50</color>
+    <color name="navigationDividerColorDark">#2C3E50</color>
     <color name="shortcut_background">#F5F5F5</color>
     <integer name="splashScreenFadeOutDuration">300</integer>
     <string name="appName" translatable="false">Bíblia Sagrada</string>

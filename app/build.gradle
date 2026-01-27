@@ -27,11 +27,11 @@ def twaManifest = [
     name: 'Bíblia Sagrada', // The application name.
     launcherName: 'Bíblia', // The name shown on the Android Launcher.
     themeColor: '#2C3E50', // The color used for the status bar.
-    themeColorDark: '#000000', // The color used for the dark status bar.
-    navigationColor: '#000000', // The color used for the navigation bar.
-    navigationColorDark: '#000000', // The color used for the dark navbar.
-    navigationDividerColor: '#000000', // The navbar divider color.
-    navigationDividerColorDark: '#000000', // The dark navbar divider color.
+    themeColorDark: '#2C3E50', // The color used for the dark status bar.
+    navigationColor: '#2C3E50', // The color used for the navigation bar.
+    navigationColorDark: '#2C3E50', // The color used for the dark navbar.
+    navigationDividerColor: '#2C3E50', // The navbar divider color.
+    navigationDividerColorDark: '#2C3E50', // The dark navbar divider color.
     backgroundColor: '#FFFFFF', // The color used for the splash screen background.
     enableNotifications: true, // Set to true to enable notification delegation.
     // Every shortcut must include the following fields:
@@ -57,8 +57,8 @@ android {
         applicationId "com.elieserjr7_boop.appbiblia"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 2
-        versionName "2"
+        versionCode 3
+        versionName "3"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
