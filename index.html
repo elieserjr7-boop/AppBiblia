@@ -20,38 +20,52 @@
         * { box-sizing: border-box; }
 
         /* --- CSS BLINDADO CONTRA LISTRAS --- */
+        :root {
+            /* Define as cores padrão (Claro) */
+            --cor-fundo-html: #fdfbf7; 
+        }
+
+        /* Se o sistema estiver em Modo Escuro, muda a variável */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --cor-fundo-html: #1f1f1f; /* A mesma cor do seu modo escuro */
+            }
+        }
+
         html {
             /* CORREÇÃO DA LISTRA (CAMUFLAGEM): */
-            /* Define a cor de fundo padrão (Modo Claro) no elemento raiz */
-            background-color: #fdfbf7; 
+            /* Agora usa a variável, então se for dark, o fundo do html fica dark também */
+            background-color: var(--cor-fundo-html); 
             
             width: 100%;
             height: 100%;
-            overflow: hidden; /* Quem rola é o body, não o html */
+            overflow: hidden; /* Quem rola é o body ou a div interna */
         }
-    
+
         body {
             font-family: 'Verdana', sans-serif;
             margin: 0;
             padding: 0;
             
-            /* A SOLUÇÃO MÁGICA: 100dvh se adapta às barras do Android/iOS */
-            height: 100vh; /* Fallback para navegadores antigos */
-            height: 100dvh; 
+            /* A SOLUÇÃO MÁGICA: 100dvh */
+            height: 100vh;  /* Fallback para navegadores antigos */
+            height: 100dvh; /* O segredo para Android/iOS modernos */
             
             width: 100%;
             
-            /* Impede rolagem no corpo (quem rola é a area-principal) */
+            /* Trava o corpo para app SPA (Single Page Application) */
             overflow: hidden; 
-            position: fixed; /* Trava na tela */
+            position: fixed; 
             top: 0;
             left: 0;
             
             display: flex;
             flex-direction: column;
             
-            background-color: #fdfbf7;
+            /* Usa a mesma variável para garantir sincronia */
+            background-color: var(--cor-fundo-html);
             color: #111;
+            
             transition: background-color 0.3s, color 0.3s;
             
             touch-action: manipulation;
@@ -1583,7 +1597,7 @@
             
             /* Ajuste fino: se a tela for pequena, diminui o espaço do topo */
             #modal-comparacao {
-                padding-top: 30px !important; 
+                padding-top: 10px !important; 
             }
         }
         
@@ -4483,41 +4497,47 @@
             inputElement.value = '';
         }
 
+        // --- CORREÇÃO DE LAYOUT DO ANDROID (VERSÃO AGRESSIVA) ---
         function forcarReparoLayout() {
-            console.log("Tentando recalibrar layout...");
+            console.log("Forçando recálculo de layout...");
+
+            // 1. Força o redimensionamento imediatamente
+            window.dispatchEvent(new Event('resize'));
+
+            // 2. O Truque da Altura (Aumenta 1px e tira)
+            // Isso obriga o Android a redesenhar a tela inteira
+            document.body.style.minHeight = '100vh'; // Garante base
             
-            // Espera um tiquinho para o Android processar a tela
             setTimeout(() => {
-                // 1. Simula um redimensionamento de janela
-                window.dispatchEvent(new Event('resize'));
-
-                // 2. O truque do pixel (move e volta)
-                const scrollY = window.scrollY;
-                window.scrollTo(0, scrollY + 1);
-                window.scrollTo(0, scrollY);
-            }, 300); // 300ms é um tempo seguro
+                document.body.style.minHeight = '100.1vh'; // Força estouro imperceptível
+                
+                setTimeout(() => {
+                    document.body.style.minHeight = ''; // Volta ao normal
+                    window.scrollTo(0, window.scrollY); // Garante posição
+                }, 50); // 50ms depois
+            }, 100); // 100ms de delay inicial
         }
 
-        // --- GATILHOS (Quem chama a função) ---
-
-        // 1. Quando o usuário troca o tema nas configurações (com o app aberto)
-        const mudancaTema = window.matchMedia('(prefers-color-scheme: dark)');
-        try {
-            mudancaTema.addEventListener('change', forcarReparoLayout);
-        } catch (e) {
-            mudancaTema.addListener(forcarReparoLayout); // Para Androids velhos
-        }
-
-        // 2. Assim que o site termina de carregar (Garante que abre certo)
+        // --- GATILHOS ---
+        // Ao carregar
         window.addEventListener('load', forcarReparoLayout);
 
-        // 3. Quando você sai do app e volta (Ex: foi no Zap e voltou)
-        // Isso é crucial, pois muitas vezes o bug acontece nessa volta.
+        // Ao voltar para o app (Minimizar/Maximizar)
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 forcarReparoLayout();
+                // Tenta de novo após 300ms só pra garantir se o celular for lento
+                setTimeout(forcarReparoLayout, 500); 
             }
         });
+
+        // Ao mudar o tema (Dark/Light)
+        try {
+            const mudancaTema = window.matchMedia('(prefers-color-scheme: dark)');
+            mudancaTema.addEventListener('change', forcarReparoLayout);
+        } catch (e) {
+            console.log("Navegador antigo detectado");
+        }
         
         iniciarApp();
     </script>
