@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Bíblia Sagrada</title>
     
     <link rel="manifest" href="./manifest.json">
@@ -55,7 +55,7 @@
             
             /* Trava o corpo para app SPA (Single Page Application) */
             overflow: hidden; 
-            position: fixed; 
+            position: absolute; 
             top: 0;
             left: 0;
             
@@ -1589,15 +1589,19 @@
 
         /* 2. REGRAS DE CELULAR (Mudei para o final para ter prioridade) */
         @media (max-width: 768px) {
+            /* 1. Ajustes na caixa branca (Filho) */
             #modal-comparacao .modal-conteudo {
-                width: 95% !important;          /* Mais largo no celular */
-                max-height: 88vh !important;    /* Um pouco mais alto no celular */
-                margin: 0 auto !important;      /* Garante centralização */
+                width: 100% !important;       /* Sugestão: no celular fica melhor ocupando 100% da largura */
+                max-height: 100dvh !important; /* Ocupa a altura disponível real */
+                margin-top: 0 !important;     /* Remove qualquer margem externa superior */
+                border-radius: 0 !important;  /* Remove arredondamento (opcional, fica mais "nativo") */
             }
             
-            /* Ajuste fino: se a tela for pequena, diminui o espaço do topo */
+            /* 2. Ajustes no fundo escuro (Pai) */
             #modal-comparacao {
-                padding-top: 0px !important; 
+                padding-top: 0px !important;       /* Remove padding do container */
+                align-items: flex-start !important; /* Força conteúdo para o topo */
+                justify-content: flex-start !important; /* Garante que não centralize se a direção mudar */
             }
         }
         
@@ -4499,45 +4503,51 @@
 
         // --- CORREÇÃO DE LAYOUT DO ANDROID (VERSÃO AGRESSIVA) ---
         function forcarReparoLayout() {
-            console.log("Forçando recálculo de layout...");
-
-            // 1. Força o redimensionamento imediatamente
-            window.dispatchEvent(new Event('resize'));
-
-            // 2. O Truque da Altura (Aumenta 1px e tira)
-            // Isso obriga o Android a redesenhar a tela inteira
-            document.body.style.minHeight = '100vh'; // Garante base
+            console.log("Aplicando Correção de Tela (Display Toggle)...");
             
+            // Pega o elemento principal onde está todo o seu site
+            // Se você não tiver um ID no corpo, use document.body
+            const areaPrincipal = document.body; 
+
+            // 1. Salva o display atual
+            const displayOriginal = areaPrincipal.style.display;
+
             setTimeout(() => {
-                document.body.style.minHeight = '100.1vh'; // Força estouro imperceptível
-                
-                setTimeout(() => {
-                    document.body.style.minHeight = ''; // Volta ao normal
-                    window.scrollTo(0, window.scrollY); // Garante posição
-                }, 50); // 50ms depois
-            }, 100); // 100ms de delay inicial
+                // 2. Some com o site (Isso reseta a renderização gráfica)
+                areaPrincipal.style.display = 'none';
+
+                // 3. Traz de volta quase instantaneamente
+                // O requestAnimationFrame garante que o navegador registrou o 'none'
+                requestAnimationFrame(() => {
+                    areaPrincipal.style.display = displayOriginal || 'flex'; // ou 'block', depende do seu CSS
+                    
+                    // Força um recálculo de altura
+                    areaPrincipal.style.height = window.innerHeight + 'px'; // Altura fixa em PX
+                    setTimeout(() => {
+                        areaPrincipal.style.height = '100dvh'; // Volta para dinâmico
+                    }, 50);
+                });
+            }, 100);
         }
 
         // --- GATILHOS ---
-        // Ao carregar
-        window.addEventListener('load', forcarReparoLayout);
+        
+        // 1. Mudança de Tema
+        try {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', forcarReparoLayout);
+        } catch (e) { 
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(forcarReparoLayout);
+        }
 
-        // Ao voltar para o app (Minimizar/Maximizar)
+        // 2. Retorno ao App (Foco)
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 forcarReparoLayout();
-                // Tenta de novo após 300ms só pra garantir se o celular for lento
-                setTimeout(forcarReparoLayout, 500); 
             }
         });
 
-        // Ao mudar o tema (Dark/Light)
-        try {
-            const mudancaTema = window.matchMedia('(prefers-color-scheme: dark)');
-            mudancaTema.addEventListener('change', forcarReparoLayout);
-        } catch (e) {
-            console.log("Navegador antigo detectado");
-        }
+        // 3. Carregamento inicial
+        window.addEventListener('load', forcarReparoLayout);
         
         iniciarApp();
     </script>
