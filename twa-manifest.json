@@ -4,12 +4,12 @@
   "name": "Bíblia Sagrada",
   "launcherName": "Bíblia",
   "display": "standalone",
-  "themeColor": "#2C3E50",
-  "themeColorDark": "#2C3E50",
-  "navigationColor": "#2C3E50",
-  "navigationColorDark": "#2C3E50",
-  "navigationDividerColor": "#2C3E50",
-  "navigationDividerColorDark": "#2C3E50",
+  "themeColor": "#1F1F1F",
+  "themeColorDark": "#1F1F1F",
+  "navigationColor": "#1F1F1F",
+  "navigationColorDark": "#1F1F1F",
+  "navigationDividerColor": "#1F1F1F",
+  "navigationDividerColorDark": "#1F1F1F",
   "backgroundColor": "#FFFFFF",
   "enableNotifications": true,
   "startUrl": "/AppBiblia/",
@@ -20,8 +20,8 @@
     "path": "/workspaces/AppBiblia/android.keystore",
     "alias": "android"
   },
-  "appVersionName": "3",
-  "appVersionCode": 3,
+  "appVersionName": "4",
+  "appVersionCode": 4,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://elieserjr7-boop.github.io/AppBiblia/manifest.json",
@@ -43,5 +43,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "3"
+  "appVersion": "4"
 }
