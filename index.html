@@ -1589,25 +1589,19 @@
 
         /* 2. REGRAS DE CELULAR (Mudei para o final para ter prioridade) */
         @media (max-width: 768px) {
-            /* 1. O PAI (Fundo Preto) */
-            /* Removemos o flexbox no mobile para evitar que ele tente centralizar */
-            #modal-comparacao {
-                display: block !important; 
-                padding-top: 0 !important;
-            }
-
-            /* 2. O FILHO (Caixa Branca) */
-            /* Forçamos ele a colar no topo e ocupar tudo */
+            /* 1. Ajustes na caixa branca (Filho) */
             #modal-comparacao .modal-conteudo {
-                position: absolute !important; /* "Sai do fluxo e obedeça as coordenadas" */
-                top: 0 !important;             /* Cola no teto */
-                left: 0 !important;            /* Cola na esquerda */
-                width: 100% !important;        /* Largura total */
-                height: 100dvh !important;     /* Altura total dinâmica */
-                max-height: 100dvh !important;
-                margin: 0 !important;          /* Zero margens */
-                border-radius: 0 !important;   /* Quadrado perfeito (sem cantos redondos) */
-                border: none !important;       /* Remove bordas se houver */
+                width: 100% !important;       /* Sugestão: no celular fica melhor ocupando 100% da largura */
+                max-height: 100dvh !important; /* Ocupa a altura disponível real */
+                margin-top: 0 !important;     /* Remove qualquer margem externa superior */
+                border-radius: 0 !important;  /* Remove arredondamento (opcional, fica mais "nativo") */
+            }
+            
+            /* 2. Ajustes no fundo escuro (Pai) */
+            #modal-comparacao {
+                padding-top: 0px !important;       /* Remove padding do container */
+                align-items: flex-start !important; /* Força conteúdo para o topo */
+                justify-content: flex-start !important; /* Garante que não centralize se a direção mudar */
             }
         }
         
