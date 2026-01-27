@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.elieserjr7_boop.twa",
+    "sha256_cert_fingerprints": [
+      "87:CF:B2:F7:23:46:C2:BC:C5:3F:1E:0C:C4:12:11:FB:38:DB:6B:94:0A:56:A2:F2:37:26:84:E2:22:39:BF:4A"
+    ]
+  }
+}]
