@@ -1555,11 +1555,35 @@
             }
         }
         
+        /* 1. REGRAS GERAIS (Aplicam para tudo) */
+
+        /* Força o modal de comparação a ficar no topo */
+        #modal-comparacao {
+            align-items: flex-start !important; /* Remove o 'center' e joga p/ cima */
+            padding-top: 70px !important;       /* Espaço para não ficar atrás do cabeçalho azul */
+            overflow-y: hidden !important;      /* Evita barra de rolagem dupla */
+        }
+
+        /* Garante que a caixinha interna aproveite o espaço */
+        #modal-comparacao .modal-conteudo {
+            margin-top: 0 !important;
+            width: 90%;                         /* Largura padrão */
+            max-height: 85vh !important;        /* Altura padrão */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 2. REGRAS DE CELULAR (Mudei para o final para ter prioridade) */
         @media (max-width: 768px) {
             #modal-comparacao .modal-conteudo {
-                width: 95%;
-                max-height: 90vh; /* Aumenta um pouco a altura no celular */
-                margin: 10px auto;
+                width: 95% !important;          /* Mais largo no celular */
+                max-height: 88vh !important;    /* Um pouco mais alto no celular */
+                margin: 0 auto !important;      /* Garante centralização */
+            }
+            
+            /* Ajuste fino: se a tela for pequena, diminui o espaço do topo */
+            #modal-comparacao {
+                padding-top: 60px !important; 
             }
         }
         
