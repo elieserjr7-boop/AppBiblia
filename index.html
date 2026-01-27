@@ -2586,8 +2586,19 @@
            
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
-            // 1. CORREÇÃO DE TELA (O Segredo!)
-            // Executa imediatamente para tirar a listra branca
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === "visible") {
+                    // O usuário voltou!
+                    const escuroAtivo = document.body.classList.contains('modo-escuro');
+                    
+                    // 1. Força a cor da barra (Tira a listra preta/branca errada)
+                    atualizarMetaColor(escuroAtivo); 
+                    
+                    // 2. Garante que o tamanho da tela está certo
+                    forcarAlturaReal(); 
+                }
+            });
+            
             forcarAlturaReal();
             
             // Executa novamente após meio segundo para garantir (caso a barra do navegador se mova)
@@ -2612,7 +2623,6 @@
             });
         }
         
-        // --- PRÉ-CARREGAMENTO UNIVERSAL (Bíblias e Hinários) ---
         // --- PRÉ-CARREGAMENTO UNIVERSAL (CORRIGIDO) ---
         async function preCarregarTudoSilenciosamente() {
             console.log("Iniciando pré-carregamento total...");
@@ -2674,29 +2684,38 @@
             cacheHinarios[tipo] = listaFinal;
         }
         
+        /* Substitua sua função atualizarMetaColor antiga por esta: */
         function atualizarMetaColor(escuro) {
-            // --- DEFINIÇÃO DAS CORES ---
-            // Aqui definimos as cores para Modo Escuro e Claro
+            // --- CORES (Ajuste aqui se quiser mudar o tom do "Azul") ---
+            // Modo Escuro: Fundo quase preto
+            const corFundoEscuro = "#1f1f1f"; 
             
-            // Cor do Fundo (e da Listra de baixo)
-            const corFundo = escuro ? "#1f1f1f" : "#fdfbf7"; 
+            // Modo Claro (Azul): 
+            // O seu código usa #2c3e50 no cabeçalho e #fdfbf7 no fundo.
+            // Para eliminar a listra, a barra do navegador deve ter a cor do cabeçalho (#2c3e50)
+            // ou a cor do fundo (#fdfbf7). 
+            // Vou colocar a cor do cabeçalho (Azul Petróleo) para ficar uniforme em cima.
+            const corFundoClaro = "#2c3e50"; 
             
-            // Cor da Barra de Status (Lá no topo, onde fica a bateria)
-            // DICA: Se a listra aparecer no topo, mude esta cor para igual a 'corFundo' também!
-            const corBarraTopo = escuro ? "#1f1f1f" : "#2c3e50"; 
-    
-            // 1. Pinta a Barra de Notificações (Android/Chrome)
-            const metaThemeColor = document.querySelector("meta[name='theme-color']");
-            if (metaThemeColor) {
-                metaThemeColor.setAttribute("content", corBarraTopo);
+            // Define a cor ativa baseada no modo
+            const corAtiva = escuro ? corFundoEscuro : corFundoClaro;
+        
+            // 1. Atualiza a meta tag theme-color (Controla a barra do Android)
+            let metaThemeColor = document.querySelector("meta[name='theme-color']");
+            if (!metaThemeColor) {
+                // Se não existir, cria na hora (segurança)
+                metaThemeColor = document.createElement('meta');
+                metaThemeColor.name = "theme-color";
+                document.head.appendChild(metaThemeColor);
             }
-    
-            // 2. A MÁGICA DA CAMUFLAGEM:
-            // Pinta o elemento <html> (que é a listra de fundo)
-            document.documentElement.style.backgroundColor = corFundo;
-            
-            // Pinta o corpo do site
-            document.body.style.backgroundColor = corFundo;
+            metaThemeColor.setAttribute("content", corAtiva);
+        
+            // 2. A MÁGICA DA CAMUFLAGEM (CORRIGIDO)
+            // Pinta o HTML e o Body com a cor de fundo correta para evitar piscadas
+            // Nota: O fundo do conteúdo deve ser claro no modo leitura, mas escuro nas bordas
+            const corBackground = escuro ? "#1f1f1f" : "#fdfbf7"; 
+            document.documentElement.style.backgroundColor = corBackground;
+            document.body.style.backgroundColor = corBackground;
         }
         
         function alternarTema() {
