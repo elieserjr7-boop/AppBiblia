@@ -55,7 +55,7 @@
             
             /* Trava o corpo para app SPA (Single Page Application) */
             overflow: hidden; 
-            position: absolute; 
+            position: fixed; 
             top: 0;
             left: 0;
             
@@ -4500,54 +4500,6 @@
             // Limpa o input para permitir selecionar o mesmo arquivo novamente se falhar
             inputElement.value = '';
         }
-
-        // --- CORREÇÃO DE LAYOUT DO ANDROID (VERSÃO AGRESSIVA) ---
-        function forcarReparoLayout() {
-            console.log("Aplicando Correção de Tela (Display Toggle)...");
-            
-            // Pega o elemento principal onde está todo o seu site
-            // Se você não tiver um ID no corpo, use document.body
-            const areaPrincipal = document.body; 
-
-            // 1. Salva o display atual
-            const displayOriginal = areaPrincipal.style.display;
-
-            setTimeout(() => {
-                // 2. Some com o site (Isso reseta a renderização gráfica)
-                areaPrincipal.style.display = 'none';
-
-                // 3. Traz de volta quase instantaneamente
-                // O requestAnimationFrame garante que o navegador registrou o 'none'
-                requestAnimationFrame(() => {
-                    areaPrincipal.style.display = displayOriginal || 'flex'; // ou 'block', depende do seu CSS
-                    
-                    // Força um recálculo de altura
-                    areaPrincipal.style.height = window.innerHeight + 'px'; // Altura fixa em PX
-                    setTimeout(() => {
-                        areaPrincipal.style.height = '100dvh'; // Volta para dinâmico
-                    }, 50);
-                });
-            }, 100);
-        }
-
-        // --- GATILHOS ---
-        
-        // 1. Mudança de Tema
-        try {
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', forcarReparoLayout);
-        } catch (e) { 
-            window.matchMedia('(prefers-color-scheme: dark)').addListener(forcarReparoLayout);
-        }
-
-        // 2. Retorno ao App (Foco)
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                forcarReparoLayout();
-            }
-        });
-
-        // 3. Carregamento inicial
-        window.addEventListener('load', forcarReparoLayout);
         
         iniciarApp();
     </script>
