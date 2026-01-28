@@ -53,6 +53,8 @@
             height: 100dvh; /* O segredo para Android/iOS modernos */
             
             width: 100%;
+
+            overscroll-behavior: none;
             
             /* Trava o corpo para app SPA (Single Page Application) */
             overflow: hidden; 
@@ -4537,68 +4539,95 @@
         }
         
         const splash = document.getElementById('splash-screen');
-    
+
         function gerenciarRetornoAoApp() {
-            // 1. Joga a cortina imediatamente
+            // 1. Abre a cortina (Splash)
             if (splash) {
                 splash.classList.remove('hide');
                 splash.style.display = 'flex';
             }
     
-            console.log("Voltando ao App... Arrumando layout...");
+            console.log("Forçando recálculo da viewport...");
     
-            // 2. SALVA A POSIÇÃO DA ROLAGEM (O Pulo do Gato)
-            // Se for na lista ou na janela inteira, salvamos os dois por garantia
+            // 2. SALVA ONDE O USUÁRIO ESTAVA
             const scrollY_Janela = window.scrollY;
             const lista = document.getElementById('lista-comparacao');
             const scrollY_Lista = lista ? lista.scrollTop : 0;
     
             const areaPrincipal = document.body;
-            const displayOriginal = areaPrincipal.style.display;
     
-            setTimeout(() => {
-                // 3. Aplica o "Choque" para consertar a altura do Android
-                areaPrincipal.style.display = 'none';
-    
-                requestAnimationFrame(() => {
-                    // 4. Traz de volta
-                    areaPrincipal.style.display = displayOriginal || 'flex';
+            // 3. O TRUQUE DO MODAL (Simulação)
+            // Em vez de display:none, vamos mudar a física do elemento.
+            // position: fixed obriga o navegador a preencher a tela visível real.
+            
+            requestAnimationFrame(() => {
+                // Passo A: Trava tudo como se fosse um modal tela cheia
+                areaPrincipal.style.position = 'fixed';
+                areaPrincipal.style.height = '100%'; 
+                areaPrincipal.style.width = '100%';
+                areaPrincipal.style.overflow = 'hidden'; // Impede rolagem fantasmas
+                
+                // Pequena pausa para o navegador "entender" o novo tamanho
+                setTimeout(() => {
+                    // Passo B: Destrava para o modo app (Absolute + 100dvh)
+                    areaPrincipal.style.position = 'absolute';
+                    areaPrincipal.style.overflow = 'hidden'; // Mantém travado (quem rola é a lista)
+                    areaPrincipal.style.width = '100%';
                     
-                    // Força altura fixa momentânea para o navegador se orientar
-                    areaPrincipal.style.height = window.innerHeight + 'px'; 
+                    // Força bruta: Pega a altura interna real em pixels
+                    // Isso ignora o que o CSS acha que é 100% e usa o pixel real
+                    const alturaReal = window.innerHeight;
+                    areaPrincipal.style.height = alturaReal + 'px';
     
-                    // 5. RESTAURA A ROLAGEM (Devolve o usuário onde ele estava)
-                    window.scrollTo(0, scrollY_Janela);
+                    // Passo C: Restaura a rolagem (Fundamental após mudar position)
                     if (lista) {
                         lista.scrollTop = scrollY_Lista;
                     }
+                    window.scrollTo(0, scrollY_Janela);
     
-                    // 6. Finaliza a correção visual e remove o Splash
+                    // Passo D: Finaliza e devolve o controle ao CSS (100dvh)
+                    // Esperamos um pouco mais para garantir que a barra sumiu visualmente
                     setTimeout(() => {
-                        areaPrincipal.style.height = '100dvh'; // Volta ao dinâmico
+                        // Agora aplicamos o 100dvh que é reativo
+                        areaPrincipal.style.height = '100dvh'; 
                         
+                        // Remove o Splash
                         if (splash) {
-                            splash.classList.add('hide'); // Fade out
-                            setTimeout(() => { splash.style.display = 'none'; }, 400);
+                            splash.classList.add('hide'); 
+                            setTimeout(() => { splash.style.display = 'none'; }, 500);
                         }
-                    }, 300); // Tempo para o olho não perceber o ajuste
-                });
-            }, 50);
+                    }, 400); // 400ms: Tempo suficiente para a barra do navegador recolher
+                }, 100); 
+            });
         }
     
-        // --- GATILHOS PARA PWA (Google) ---
+        // --- GATILHOS (LISTENERS) ---
     
-        // Detecta quando você troca de app e volta
+        // 1. Quando troca de aba ou minimiza o app
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 gerenciarRetornoAoApp();
             }
         });
     
-        // Primeira carga
-        window.addEventListener('load', () => {
-            setTimeout(gerenciarRetornoAoApp, 100);
+        // 2. Quando a tela é redimensionada (Giro de tela ou teclado abrindo)
+        // Isso garante que se o teclado bagunçar, ele arruma de novo ao fechar
+        window.addEventListener('resize', () => {
+            // Só ajusta a altura em pixels, sem splash, para ser discreto
+            document.body.style.height = window.innerHeight + 'px';
         });
+    
+        // 3. Ao carregar a página
+        window.addEventListener('load', () => {
+            // Tenta rolar 1px para baixo para forçar o navegador a esconder a barra de endereço
+            window.scrollTo(0, 1);
+            setTimeout(gerenciarRetornoAoApp, 200);
+        });
+    
+        // Inicia seu app
+        if (typeof iniciarApp === 'function') {
+            iniciarApp();
+        }
 
         
         iniciarApp();
