@@ -16,6 +16,7 @@
     <link rel="icon" type="image/png" href="./icon-192.png">
 
     <style>
+
         /* --- ESTILO GERAL (MANTIDO DO SEU ARQUIVO FAVORITO) --- */
         * { box-sizing: border-box; }
 
@@ -70,6 +71,33 @@
             
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--cor-fundo-html); /* Usa a cor correta do tema */
+            z-index: 9999; /* Fica em cima de tudo */
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            transition: opacity 0.4s ease-out; /* Efeito suave ao sumir */
+        }
+        
+        /* Quando adicionarmos a classe 'hide', ele some */
+        #splash-screen.hide {
+            opacity: 0;
+            pointer-events: none; /* Permite clicar no app embaixo */
+        }
+
+        /* Se o javascript adicionar a classe .dark-mode no body ou html */
+        body.dark-mode, html.dark-mode {
+            --cor-fundo-html: #1f1f1f;
         }
         
         /* --- CABEÇALHO --- */
@@ -2110,6 +2138,13 @@
     </style>
 </head>
 <body id="corpo-app">
+
+    <div id="splash-screen">
+        <div class="splash-content">
+            <h1 style="font-size: 24px;">Seu App</h1>
+            <p>Carregando...</p>
+        </div>
+    </div>
 
     <header id="cabecalho-principal">
         <button id="btn-tema" onclick="alternarTema()">🌗</button>
@@ -4500,6 +4535,71 @@
             // Limpa o input para permitir selecionar o mesmo arquivo novamente se falhar
             inputElement.value = '';
         }
+        
+        const splash = document.getElementById('splash-screen');
+    
+        function gerenciarRetornoAoApp() {
+            // 1. Joga a cortina imediatamente
+            if (splash) {
+                splash.classList.remove('hide');
+                splash.style.display = 'flex';
+            }
+    
+            console.log("Voltando ao App... Arrumando layout...");
+    
+            // 2. SALVA A POSIÇÃO DA ROLAGEM (O Pulo do Gato)
+            // Se for na lista ou na janela inteira, salvamos os dois por garantia
+            const scrollY_Janela = window.scrollY;
+            const lista = document.getElementById('lista-comparacao');
+            const scrollY_Lista = lista ? lista.scrollTop : 0;
+    
+            const areaPrincipal = document.body;
+            const displayOriginal = areaPrincipal.style.display;
+    
+            setTimeout(() => {
+                // 3. Aplica o "Choque" para consertar a altura do Android
+                areaPrincipal.style.display = 'none';
+    
+                requestAnimationFrame(() => {
+                    // 4. Traz de volta
+                    areaPrincipal.style.display = displayOriginal || 'flex';
+                    
+                    // Força altura fixa momentânea para o navegador se orientar
+                    areaPrincipal.style.height = window.innerHeight + 'px'; 
+    
+                    // 5. RESTAURA A ROLAGEM (Devolve o usuário onde ele estava)
+                    window.scrollTo(0, scrollY_Janela);
+                    if (lista) {
+                        lista.scrollTop = scrollY_Lista;
+                    }
+    
+                    // 6. Finaliza a correção visual e remove o Splash
+                    setTimeout(() => {
+                        areaPrincipal.style.height = '100dvh'; // Volta ao dinâmico
+                        
+                        if (splash) {
+                            splash.classList.add('hide'); // Fade out
+                            setTimeout(() => { splash.style.display = 'none'; }, 400);
+                        }
+                    }, 300); // Tempo para o olho não perceber o ajuste
+                });
+            }, 50);
+        }
+    
+        // --- GATILHOS PARA PWA (Google) ---
+    
+        // Detecta quando você troca de app e volta
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                gerenciarRetornoAoApp();
+            }
+        });
+    
+        // Primeira carga
+        window.addEventListener('load', () => {
+            setTimeout(gerenciarRetornoAoApp, 100);
+        });
+
         
         iniciarApp();
     </script>
