@@ -16,7 +16,6 @@
     <link rel="icon" type="image/png" href="./icon-192.png">
 
     <style>
-
         /* --- ESTILO GERAL (MANTIDO DO SEU ARQUIVO FAVORITO) --- */
         * { box-sizing: border-box; }
 
@@ -53,8 +52,6 @@
             height: 100dvh; /* O segredo para Android/iOS modernos */
             
             width: 100%;
-
-            overscroll-behavior: none;
             
             /* Trava o corpo para app SPA (Single Page Application) */
             overflow: hidden; 
@@ -73,33 +70,6 @@
             
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--cor-fundo-html); /* Usa a cor correta do tema */
-            z-index: 9999; /* Fica em cima de tudo */
-            
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            
-            transition: opacity 0.4s ease-out; /* Efeito suave ao sumir */
-        }
-        
-        /* Quando adicionarmos a classe 'hide', ele some */
-        #splash-screen.hide {
-            opacity: 0;
-            pointer-events: none; /* Permite clicar no app embaixo */
-        }
-
-        /* Se o javascript adicionar a classe .dark-mode no body ou html */
-        body.dark-mode, html.dark-mode {
-            --cor-fundo-html: #1f1f1f;
         }
         
         /* --- CABEÇALHO --- */
@@ -2140,13 +2110,6 @@
     </style>
 </head>
 <body id="corpo-app">
-
-    <div id="splash-screen">
-        <div class="splash-content">
-            <h1 style="font-size: 24px;">Seu App</h1>
-            <p>Carregando...</p>
-        </div>
-    </div>
 
     <header id="cabecalho-principal">
         <button id="btn-tema" onclick="alternarTema()">🌗</button>
@@ -4537,98 +4500,6 @@
             // Limpa o input para permitir selecionar o mesmo arquivo novamente se falhar
             inputElement.value = '';
         }
-        
-        const splash = document.getElementById('splash-screen');
-
-        function gerenciarRetornoAoApp() {
-            // 1. Abre a cortina (Splash)
-            if (splash) {
-                splash.classList.remove('hide');
-                splash.style.display = 'flex';
-            }
-    
-            console.log("Forçando recálculo da viewport...");
-    
-            // 2. SALVA ONDE O USUÁRIO ESTAVA
-            const scrollY_Janela = window.scrollY;
-            const lista = document.getElementById('lista-comparacao');
-            const scrollY_Lista = lista ? lista.scrollTop : 0;
-    
-            const areaPrincipal = document.body;
-    
-            // 3. O TRUQUE DO MODAL (Simulação)
-            // Em vez de display:none, vamos mudar a física do elemento.
-            // position: fixed obriga o navegador a preencher a tela visível real.
-            
-            requestAnimationFrame(() => {
-                // Passo A: Trava tudo como se fosse um modal tela cheia
-                areaPrincipal.style.position = 'fixed';
-                areaPrincipal.style.height = '100%'; 
-                areaPrincipal.style.width = '100%';
-                areaPrincipal.style.overflow = 'hidden'; // Impede rolagem fantasmas
-                
-                // Pequena pausa para o navegador "entender" o novo tamanho
-                setTimeout(() => {
-                    // Passo B: Destrava para o modo app (Absolute + 100dvh)
-                    areaPrincipal.style.position = 'absolute';
-                    areaPrincipal.style.overflow = 'hidden'; // Mantém travado (quem rola é a lista)
-                    areaPrincipal.style.width = '100%';
-                    
-                    // Força bruta: Pega a altura interna real em pixels
-                    // Isso ignora o que o CSS acha que é 100% e usa o pixel real
-                    const alturaReal = window.innerHeight;
-                    areaPrincipal.style.height = alturaReal + 'px';
-    
-                    // Passo C: Restaura a rolagem (Fundamental após mudar position)
-                    if (lista) {
-                        lista.scrollTop = scrollY_Lista;
-                    }
-                    window.scrollTo(0, scrollY_Janela);
-    
-                    // Passo D: Finaliza e devolve o controle ao CSS (100dvh)
-                    // Esperamos um pouco mais para garantir que a barra sumiu visualmente
-                    setTimeout(() => {
-                        // Agora aplicamos o 100dvh que é reativo
-                        areaPrincipal.style.height = '100dvh'; 
-                        
-                        // Remove o Splash
-                        if (splash) {
-                            splash.classList.add('hide'); 
-                            setTimeout(() => { splash.style.display = 'none'; }, 500);
-                        }
-                    }, 400); // 400ms: Tempo suficiente para a barra do navegador recolher
-                }, 100); 
-            });
-        }
-    
-        // --- GATILHOS (LISTENERS) ---
-    
-        // 1. Quando troca de aba ou minimiza o app
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                gerenciarRetornoAoApp();
-            }
-        });
-    
-        // 2. Quando a tela é redimensionada (Giro de tela ou teclado abrindo)
-        // Isso garante que se o teclado bagunçar, ele arruma de novo ao fechar
-        window.addEventListener('resize', () => {
-            // Só ajusta a altura em pixels, sem splash, para ser discreto
-            document.body.style.height = window.innerHeight + 'px';
-        });
-    
-        // 3. Ao carregar a página
-        window.addEventListener('load', () => {
-            // Tenta rolar 1px para baixo para forçar o navegador a esconder a barra de endereço
-            window.scrollTo(0, 1);
-            setTimeout(gerenciarRetornoAoApp, 200);
-        });
-    
-        // Inicia seu app
-        if (typeof iniciarApp === 'function') {
-            iniciarApp();
-        }
-
         
         iniciarApp();
     </script>
