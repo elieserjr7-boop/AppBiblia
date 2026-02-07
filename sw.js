@@ -3,7 +3,7 @@ const CACHE_NAME = 'biblia-sagrada-v42';
 
 // Lista de arquivos
 const urlsToCache = [
-  './biblia.html',
+  './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
