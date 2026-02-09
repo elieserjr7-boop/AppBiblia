@@ -3646,39 +3646,44 @@
         // --- HINÁRIOS (AGORA ULTRA-RÁPIDOS) ---
     
         async function abrirHinario(tipo) {
-            // 1. Arruma a tela
+            // 1. CORREÇÃO DO ERRO "UNDEFINED":
+            // Se a gaveta de memória não existe, cria ela agora.
+            if (typeof window.cacheHinarios === 'undefined') {
+                window.cacheHinarios = {};
+            }
+        
+            // 2. Prepara a tela
             document.getElementById('tela-escolha-hinario').classList.add('escondido');
             document.getElementById('titulo-app').innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
             
-            // Mostra loading se existir
             if(typeof loading !== 'undefined') loading.style.display = 'block';
         
             try {
-                // 2. Define o arquivo
-                // ATENÇÃO: O nome do arquivo no GitHub TEM QUE SER IDÊNTICO a este aqui.
-                let nomeArquivo = (tipo === 'harpa') ? "harpa.json" : "cantor_cristao.json";
-                
-                // 3. Verifica se já temos na memória RAM (pra não travar à toa)
-                if (window.cacheHinarios && window.cacheHinarios[tipo]) {
+                // 3. Tenta pegar da memória (agora seguro)
+                if (window.cacheHinarios[tipo]) {
                     dadosHinario = window.cacheHinarios[tipo];
                     renderizarListaHinos();
                     finalizarAbertura();
                     return;
                 }
         
-                // 4. Busca Simples (Sem timestamp, sem cache manual complexo)
-                const resp = await fetch('./' + nomeArquivo);
+                // 4. Define o arquivo
+                let nomeArquivo = (tipo === 'harpa') ? "harpa.json" : "cantor_cristao.json";
                 
-                // Se der erro 404 (Não encontrado), avisa logo
-                if (!resp.ok) {
-                    throw new Error(`Arquivo "${nomeArquivo}" não encontrado (Erro ${resp.status})`);
-                }
+                // 5. Busca o arquivo
+                const resp = await fetch('./' + nomeArquivo);
+                if (!resp.ok) throw new Error("Arquivo não encontrado.");
         
                 let json = await resp.json();
                 
-                // 5. Processa (Usando aquela função "Blindada" que te passei antes)
-                // Se você não tiver ela, me avise que mando de novo.
-                processarJsonHinario(json, tipo); 
+                // 6. Processa (usa aquela função que te passei antes)
+                // Se der erro aqui, é porque a função processarJsonHinario não está no seu código
+                if (typeof processarJsonHinario === 'function') {
+                    processarJsonHinario(json, tipo);
+                } else {
+                    // Plano B se a função não existir (para não travar)
+                    window.cacheHinarios[tipo] = Object.values(json); 
+                }
                 
                 dadosHinario = window.cacheHinarios[tipo];
                 renderizarListaHinos();
@@ -3686,9 +3691,7 @@
         
             } catch (e) {
                 console.error(e);
-                alert("ERRO: Não foi possível abrir o hinário.\n\nMotivo: " + e.message + "\n\nDICA: Verifique se o nome do arquivo no GitHub é exatamente 'cantor_cristao.json' (tudo minúsculo).");
-                
-                // Volta pra tela inicial
+                alert("Erro: " + e.message);
                 document.getElementById('tela-escolha-hinario').classList.remove('escondido');
             } finally {
                 if(typeof loading !== 'undefined') loading.style.display = 'none';
