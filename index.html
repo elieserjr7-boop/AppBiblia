@@ -3644,47 +3644,71 @@
         }
         
         // --- HINÁRIOS (AGORA ULTRA-RÁPIDOS) ---
+    
         async function abrirHinario(tipo) {
+            // 1. Prepara a tela
             document.getElementById('tela-escolha-hinario').classList.add('escondido');
             document.getElementById('titulo-app').innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
-
-            // 1. Tenta pegar do Cache RAM
-            if (cacheHinarios[tipo]) {
-                dadosHinario = cacheHinarios[tipo];
-                renderizarListaHinos();
-                document.getElementById('tela-lista-hinos').classList.remove('escondido');
-                alternarBarras('navegacao');
-                return; 
-            }
-
-            // 2. Define o nome correto do arquivo
-            // Atenção: certifique-se que os arquivos estão na mesma pasta do index.html
-            let nomeArquivo = (tipo === 'harpa') ? "harpa.json" : "cantor_cristao.json";
-            
-            // Mostra loading se existir a variável, senão ignora
+        
+            // Mostra loading
             if(typeof loading !== 'undefined') loading.style.display = 'block';
-
+        
             try {
-                // Adicionando timestamp para evitar cache antigo do navegador
-                const resp = await fetch(`./${nomeArquivo}?v=${new Date().getTime()}`);
-                if(!resp.ok) throw new Error("Erro de rede ao buscar " + nomeArquivo);
+                // 2. Tenta pegar da Memória RAM (instantâneo)
+                if (window.cacheHinarios && window.cacheHinarios[tipo]) {
+                    dadosHinario = window.cacheHinarios[tipo];
+                    renderizarListaHinos();
+                    finalizarAbertura();
+                    return; 
+                }
+        
+                // 3. Define o arquivo
+                let nomeArquivo = (tipo === 'harpa') ? "harpa.json" : "cantor_cristao.json";
+                
+                // --- AQUI ESTAVA O ERRO ---
+                // Removi o "?v=..." . Agora ele busca o arquivo limpo.
+                const resp = await fetch(`./${nomeArquivo}`);
+                
+                if(!resp.ok) throw new Error(`Erro ${resp.status} ao buscar ${nomeArquivo}`);
+        
+                // --- TRAVA DE SEGURANÇA (NOVO) ---
+                // Isso obriga o navegador a salvar o arquivo para funcionar offline na próxima vez
+                // mesmo que o Service Worker tenha falhado.
+                try {
+                    const cloneRes = resp.clone(); // Clona a resposta
+                    caches.open('biblia-sagrada-v60').then(cache => {
+                        cache.put(`./${nomeArquivo}`, cloneRes);
+                        console.log("Arquivo salvo no cache forçadamente: " + nomeArquivo);
+                    });
+                } catch (errCache) {
+                    console.log("Aviso: Não foi possível forçar o cache (talvez em modo privado).");
+                }
+                // ----------------------------------
                 
                 let json = await resp.json();
                 
-                processarJsonHinario(json, tipo); // Converte o JSON em Array ordenado
-                dadosHinario = cacheHinarios[tipo]; // Usa o cache processado
-
+                // 4. Processa (usa a função blindada que te passei antes)
+                processarJsonHinario(json, tipo); 
+                dadosHinario = window.cacheHinarios[tipo];
+        
+                // 5. Renderiza
                 renderizarListaHinos();
-                document.getElementById('tela-lista-hinos').classList.remove('escondido');
-                alternarBarras('navegacao');
-
+                finalizarAbertura();
+        
             } catch(e) {
                 console.error(e);
-                alert("Erro ao abrir Hinário: " + e.message);
+                alert("Erro ao abrir Hinário.\nSe você estiver sem internet, este hinário ainda não foi baixado.\n\nDetalhe: " + e.message);
                 document.getElementById('tela-escolha-hinario').classList.remove('escondido');
+                document.getElementById('titulo-app').innerText = "Bíblia Sagrada";
             } finally {
                 if(typeof loading !== 'undefined') loading.style.display = 'none';
             }
+        }
+        
+        // Certifique-se de ter esta função auxiliar também (se já tiver, não precisa copiar)
+        function finalizarAbertura() {
+            document.getElementById('tela-lista-hinos').classList.remove('escondido');
+            if(typeof alternarBarras === 'function') alternarBarras('navegacao'); 
         }
 
         // --- LÓGICA DO MODAL DE LEITURA (PERFIL) ---
