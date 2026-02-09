@@ -10,6 +10,7 @@ const urlsToCache = [
   './icon-512.png',
   './harpa.json',
   './cantor_cristao.json',
+  './cantor.json',
   './NVI.json',
   './NVT.json',
   './ACF.json',
