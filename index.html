@@ -2741,57 +2741,6 @@
             }
         }
         
-        // Auxiliar para preparar o JSON do hinário assim que baixar
-        function processarJsonHinario(jsonBruto, tipo) {
-            const listaTratada = Object.values(jsonBruto).map(item => {
-                try {
-                    // Se não tiver hino, ignora
-                    if (!item.hino) return null;
-
-                    // 1. Resolve os Versos (Harpa vs Cantor)
-                    let versosUnificados = item.versos || item.verses || {};
-
-                    // 2. Separa Número e Título (Só para garantir a ordenação)
-                    let numero = "0";
-                    let tituloTexto = item.hino; // Pega o texto original
-
-                    let indiceTraco = item.hino.indexOf('-');
-                    
-                    if (indiceTraco > 0) {
-                        // Pega o número antes do traço
-                        numero = item.hino.substring(0, indiceTraco).trim();
-                        // Pega o título depois do traço (DO JEITO QUE VIER)
-                        tituloTexto = item.hino.substring(indiceTraco + 1).trim();
-                    }
-
-                    // *** REMOVI A PARTE QUE MUDAVA A LETRA ***
-                    // Agora o tituloTexto fica EXATAMENTE como está no JSON
-
-                    return {
-                        numero: numero,
-                        // Reconstrói visualmente: "581 - A ÚNICA ESPERANÇA"
-                        titulo: `${numero} - ${tituloTexto}`, 
-                        tituloPuro: tituloTexto,
-                        tituloCompleto: item.hino,
-                        versos: versosUnificados,
-                        coro: item.coro || "",
-                        autor: item.autor || item.Author || ""
-                    };
-                } catch (erro) {
-                    return null;
-                }
-            })
-            .filter(hino => hino !== null)
-            .sort((a, b) => {
-                let numA = parseInt(a.numero) || 0;
-                let numB = parseInt(b.numero) || 0;
-                return numA - numB;
-            });
-
-            if (typeof cacheHinarios === 'undefined') window.cacheHinarios = {};
-            cacheHinarios[tipo] = listaTratada;
-        }
-        
         /* Substitua sua função atualizarMetaColor antiga por esta: */
         function atualizarMetaColor(escuro) {
             // --- CORES (Ajuste aqui se quiser mudar o tom do "Azul") ---
