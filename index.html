@@ -2742,30 +2742,54 @@
         }
         
         // Auxiliar para preparar o JSON do hinário assim que baixar
-        function processarJsonHinario(json, tipo) {
-            // O seu JSON é um Objeto {"1": {...}, "2": {...}}, precisamos transformar em Array []
-            let lista = [];
+        function processarJsonHinario(jsonBruto, tipo) {
+            const listaTratada = Object.values(jsonBruto).map(item => {
+                try {
+                    // Se não tiver hino, ignora
+                    if (!item.hino) return null;
 
-            Object.keys(json).forEach(key => {
-                // Ignora metadados (chaves negativas ou não numéricas se houver)
-                if (isNaN(key) || parseInt(key) <= 0) return;
+                    // 1. Resolve os Versos (Harpa vs Cantor)
+                    let versosUnificados = item.versos || item.verses || {};
 
-                const obj = json[key];
-                lista.push({
-                    numero: parseInt(key), // Garante que é número para ordenar
-                    tituloOriginal: obj.hino, // Ex: "1 - Chuvas de Graça"
-                    titulo: obj.hino,         // Usaremos na busca
-                    autor: obj.autor || "",
-                    coro: obj.coro || "",     // Texto do coro
-                    versos: obj.verses || {}  // Objeto com os versos {"1": "..."}
-                });
+                    // 2. Separa Número e Título (Só para garantir a ordenação)
+                    let numero = "0";
+                    let tituloTexto = item.hino; // Pega o texto original
+
+                    let indiceTraco = item.hino.indexOf('-');
+                    
+                    if (indiceTraco > 0) {
+                        // Pega o número antes do traço
+                        numero = item.hino.substring(0, indiceTraco).trim();
+                        // Pega o título depois do traço (DO JEITO QUE VIER)
+                        tituloTexto = item.hino.substring(indiceTraco + 1).trim();
+                    }
+
+                    // *** REMOVI A PARTE QUE MUDAVA A LETRA ***
+                    // Agora o tituloTexto fica EXATAMENTE como está no JSON
+
+                    return {
+                        numero: numero,
+                        // Reconstrói visualmente: "581 - A ÚNICA ESPERANÇA"
+                        titulo: `${numero} - ${tituloTexto}`, 
+                        tituloPuro: tituloTexto,
+                        tituloCompleto: item.hino,
+                        versos: versosUnificados,
+                        coro: item.coro || "",
+                        autor: item.autor || item.Author || ""
+                    };
+                } catch (erro) {
+                    return null;
+                }
+            })
+            .filter(hino => hino !== null)
+            .sort((a, b) => {
+                let numA = parseInt(a.numero) || 0;
+                let numB = parseInt(b.numero) || 0;
+                return numA - numB;
             });
 
-            // Ordena por número (1, 2, 3...)
-            lista.sort((a, b) => a.numero - b.numero);
-
-            // Salva no cache global
-            cacheHinarios[tipo] = lista;
+            if (typeof cacheHinarios === 'undefined') window.cacheHinarios = {};
+            cacheHinarios[tipo] = listaTratada;
         }
         
         /* Substitua sua função atualizarMetaColor antiga por esta: */
@@ -3581,6 +3605,42 @@
             
             // 2. Recarrega a leitura do capítulo atual
             renderizarVersiculos(); 
+        }
+        
+        /* --- FUNÇÃO QUE ORGANIZA OS DADOS DO HINÁRIO --- */
+        function tratarDadosHinario(jsonBruto) {
+            // Transforma o objeto JSON em uma lista (Array) real
+            return Object.values(jsonBruto).map(item => {
+                
+                // 1. Ignora itens que não são hinos (como metadados ou autor do projeto)
+                // Se não tiver a propriedade 'hino' ou 'verses/versos', pula.
+                if (!item.hino || (!item.verses && !item.versos)) return null;
+
+                // 2. Separa o Número do Título
+                // Exemplo: "581 - A ÚNICA ESPERANÇA " -> ["581", "A ÚNICA ESPERANÇA"]
+                let partes = item.hino.split(' - ');
+                let numero = partes[0].trim();
+                let titulo = partes[1] ? partes[1].trim() : "Hino sem título";
+
+                // Tenta deixar o título bonito (Primeira Maiúscula, resto minúscula)
+                // Se preferir tudo MAIÚSCULO, apague estas 3 linhas abaixo:
+                titulo = titulo.charAt(0).toUpperCase() + titulo.slice(1).toLowerCase();
+
+                // 3. Garante que os versos existam (aceita 'verses' ou 'versos')
+                let versos = item.verses || item.versos || {};
+
+                // 4. Retorna o objeto bonitinho e padronizado
+                return {
+                    numero: numero,
+                    titulo: titulo, // Título limpo
+                    tituloCompleto: item.hino, // Mantém o original para busca
+                    versos: versos,
+                    coro: item.coro || "", // Se não tiver coro, fica vazio
+                    autor: item.autor || item.Author || "" // Pega o autor se tiver
+                };
+
+            }).filter(hino => hino !== null) // Remove os itens vazios
+            .sort((a, b) => parseInt(a.numero) - parseInt(b.numero)); // Ordena por número
         }
         
         // --- HINÁRIOS (AGORA ULTRA-RÁPIDOS) ---
