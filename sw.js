@@ -6,8 +6,8 @@ const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
+  './static/icons/icon-192.png',
+  './static/icons/icon-512.png',
   './harpa.json',
   './cantor_cristao.json', // Este arquivo TEM de estar na pasta raiz
   './cantor.json',         // Verifique se você usa mesmo este arquivo, senão remova
