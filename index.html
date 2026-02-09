@@ -2709,21 +2709,32 @@
         // --- PRÉ-CARREGAMENTO UNIVERSAL (CORRIGIDO) ---
         async function preCarregarTudoSilenciosamente() {
             console.log("Iniciando pré-carregamento total...");
+            
+            const mapaHinarios = {
+                'harpa': 'harpa.json',
+                'cantor': 'cantor_cristao.json' // <--- AQUI ESTAVA O ERRO ANTES
+            };
         
             // A. Baixar Hinários
-            const hinarios = ["harpa", "cantor"];
-            for (const h of hinarios) {
-                if (!cacheHinarios[h]) {
+            for (const [chave, arquivo] of Object.entries(mapaHinarios)) {
+                // Só baixa se ainda não estiver na memória RAM
+                if (!window.cacheHinarios) window.cacheHinarios = {};
+                
+                if (!window.cacheHinarios[chave]) {
                     try {
-                        const r = await fetch(`./${h}.json`);
+                        // Tenta buscar (o Service Worker vai entregar do cache se tiver, ou da rede)
+                        const r = await fetch(`./${arquivo}`);
                         if(r.ok) {
                             const json = await r.json();
-                            processarJsonHinario(json, h);
+                            processarJsonHinario(json, chave);
+                            console.log(`Pré-load OK: ${chave}`);
                         }
-                    } catch(e) { console.warn("Falha pre-load hinario: " + h); }
+                    } catch(e) { 
+                        console.warn("Falha pre-load hinario: " + chave); 
+                    }
                 }
             }
-        
+
             // B. Baixar Outras Versões da Bíblia (CORREÇÃO AQUI)
             // Agora percorremos a lista de objetos e usamos 'versao.sigla'
             for (const item of listaVersoesDisponiveis) {
@@ -3645,6 +3656,9 @@
         
         // --- HINÁRIOS (AGORA ULTRA-RÁPIDOS) ---
         async function abrirHinario(tipo) {
+            const inputBusca = document.getElementById('busca-hino');
+            if (inputBusca) inputBusca.value = "";
+            
             document.getElementById('tela-escolha-hinario').classList.add('escondido');
             document.getElementById('titulo-app').innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
 
