@@ -2107,6 +2107,27 @@
             max-height: 85vh !important; 
         }
         
+        /* Adicione no seu <style> */
+        .hino-verso { margin-bottom: 20px; font-size: 1.2rem; line-height: 1.6; }
+        .numero-verso { color: #e67e22; font-weight: bold; margin-right: 8px; }
+        .hino-coro { 
+            background: rgba(0,0,0,0.05); 
+            border-left: 4px solid #e67e22; 
+            padding: 15px; 
+            margin: 20px 0; 
+            font-style: italic; 
+        }
+        .titulo-refrão { 
+            display: block; font-size: 0.7em; font-weight: bold; color: #888; margin-bottom: 5px; 
+        }
+        .hino-autor { text-align: center; color: #888; font-style: italic; margin-bottom: 20px; font-size: 0.9em; }
+
+        /* Adaptação Modo Escuro */
+        @media (prefers-color-scheme: dark) {
+            .hino-coro { background: rgba(255,255,255,0.1); }
+            .titulo-refrão, .hino-autor { color: #bbb; }
+        }
+
     </style>
 </head>
 <body id="corpo-app">
@@ -2722,28 +2743,29 @@
         
         // Auxiliar para preparar o JSON do hinário assim que baixar
         function processarJsonHinario(json, tipo) {
-            let listaFinal = [];
-            if (Array.isArray(json)) {
-                listaFinal = json.map(h => ({
-                    numero: h.numero || h.number || h.id, 
-                    titulo: h.titulo || h.title,
-                    letra: h.letra || h.text || h.verses || h.lyrics
-                }));
-            } else {
-                listaFinal = Object.values(json)
-                    .filter(obj => obj.hino)
-                    .map(obj => {
-                        let partes = obj.hino.split(" - ");
-                        let num = partes[0].trim();
-                        let tit = partes.length > 1 ? partes.slice(1).join(" - ").trim() : "Sem título";
-                        let letraArr = (obj.verses && typeof obj.verses === 'object') ? Object.values(obj.verses) : obj.verses;
-                        return { numero: num, titulo: tit, letra: letraArr };
-                    });
-                listaFinal.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
-            }
-            // Salva no Cache de Hinários com uma propriedade extra "tipo"
-            listaFinal.tipo = tipo;
-            cacheHinarios[tipo] = listaFinal;
+            // O seu JSON é um Objeto {"1": {...}, "2": {...}}, precisamos transformar em Array []
+            let lista = [];
+
+            Object.keys(json).forEach(key => {
+                // Ignora metadados (chaves negativas ou não numéricas se houver)
+                if (isNaN(key) || parseInt(key) <= 0) return;
+
+                const obj = json[key];
+                lista.push({
+                    numero: parseInt(key), // Garante que é número para ordenar
+                    tituloOriginal: obj.hino, // Ex: "1 - Chuvas de Graça"
+                    titulo: obj.hino,         // Usaremos na busca
+                    autor: obj.autor || "",
+                    coro: obj.coro || "",     // Texto do coro
+                    versos: obj.verses || {}  // Objeto com os versos {"1": "..."}
+                });
+            });
+
+            // Ordena por número (1, 2, 3...)
+            lista.sort((a, b) => a.numero - b.numero);
+
+            // Salva no cache global
+            cacheHinarios[tipo] = lista;
         }
         
         /* Substitua sua função atualizarMetaColor antiga por esta: */
@@ -3565,37 +3587,43 @@
         async function abrirHinario(tipo) {
             document.getElementById('tela-escolha-hinario').classList.add('escondido');
             document.getElementById('titulo-app').innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
-        
-            // 1. Tenta pegar do Cache RAM (Instantâneo)
+
+            // 1. Tenta pegar do Cache RAM
             if (cacheHinarios[tipo]) {
                 dadosHinario = cacheHinarios[tipo];
                 renderizarListaHinos();
-                telaListaHinos.classList.remove('escondido');
+                document.getElementById('tela-lista-hinos').classList.remove('escondido');
                 alternarBarras('navegacao');
-                return; // Sucesso, nem mostra loading
+                return; 
             }
-        
-            // 2. Se por acaso ainda não baixou (muito raro), baixa agora
-            let url = (tipo === 'harpa') ? "./harpa.json" : "./cantor.json";
-            loading.style.display = 'block';
-        
+
+            // 2. Define o nome correto do arquivo
+            // Atenção: certifique-se que os arquivos estão na mesma pasta do index.html
+            let nomeArquivo = (tipo === 'harpa') ? "harpa.json" : "cantor_cristao.json";
+            
+            // Mostra loading se existir a variável, senão ignora
+            if(typeof loading !== 'undefined') loading.style.display = 'block';
+
             try {
-                const resp = await fetch(url);
-                if(!resp.ok) throw new Error("Erro de rede");
+                // Adicionando timestamp para evitar cache antigo do navegador
+                const resp = await fetch(`./${nomeArquivo}?v=${new Date().getTime()}`);
+                if(!resp.ok) throw new Error("Erro de rede ao buscar " + nomeArquivo);
+                
                 let json = await resp.json();
                 
-                processarJsonHinario(json, tipo); // Salva no cache
+                processarJsonHinario(json, tipo); // Converte o JSON em Array ordenado
                 dadosHinario = cacheHinarios[tipo]; // Usa o cache processado
-        
+
                 renderizarListaHinos();
-                telaListaHinos.classList.remove('escondido');
+                document.getElementById('tela-lista-hinos').classList.remove('escondido');
                 alternarBarras('navegacao');
-        
+
             } catch(e) {
-                alert("Erro ao abrir Hinário.");
-                telaEscolhaHinario.classList.remove('escondido');
+                console.error(e);
+                alert("Erro ao abrir Hinário: " + e.message);
+                document.getElementById('tela-escolha-hinario').classList.remove('escondido');
             } finally {
-                loading.style.display = 'none';
+                if(typeof loading !== 'undefined') loading.style.display = 'none';
             }
         }
 
@@ -3674,45 +3702,115 @@
             const container = document.getElementById('lista-hinos-container');
             container.innerHTML = "";
             const termo = filtro.toLowerCase();
+
+            // Fragmento para melhorar performance ao carregar 600 hinos
+            const fragment = document.createDocumentFragment();
+
             dadosHinario.forEach((hino, index) => {
+                // Lógica de busca (pelo número ou pelo título)
                 if(String(hino.titulo).toLowerCase().includes(termo) || String(hino.numero).includes(termo)) {
-                    const div = document.createElement('div');
-                    div.className = 'item-hino';
-                    div.innerHTML = `<strong>${hino.numero}.</strong> ${hino.titulo}`;
-                    div.onclick = () => lerHino(index);
-                    container.appendChild(div);
+                    
+                    // --- MUDANÇA AQUI: Criamos um BUTTON real ---
+                    const btn = document.createElement('button');
+                    btn.className = 'item-hino'; // Classe para o CSS estilizar
+                    
+                    // Conteúdo visual (Título em negrito)
+                    btn.innerHTML = `<strong>${hino.titulo}</strong>`;
+                    
+                    // Ação do clique
+                    btn.onclick = function() { lerHino(index); };
+                    
+                    fragment.appendChild(btn);
                 }
             });
+
+            container.appendChild(fragment);
         }
         
         function filtrarHinos() { 
             renderizarListaHinos(document.getElementById('busca-hino').value); 
         }
         
+        /* --- FUNÇÃO DE LEITURA BLINDADA CONTRA ERROS --- */
         function lerHino(index) {
             hinoAtual = index;
             const hino = dadosHinario[index];
-            let letraRaw = hino.letra;
-            let letraHTML = "";
-        
-            if (!letraRaw) {
-                letraHTML = "<p>Letra indisponível.</p>";
-            } else if (Array.isArray(letraRaw)) {
-                letraRaw.forEach(estrofe => {
-                     let texto = (typeof estrofe === 'string') ? estrofe : (estrofe.verse || estrofe.text || "");
-                     letraHTML += `<div class="estrofe-hino">${texto.replace(/\n/g, '<br>')}</div>`;
-                });
-            } else {
-                letraHTML = `<div class="estrofe-hino">${String(letraRaw).replace(/\n/g, '<br>')}</div>`;
-            }
-        
-            document.getElementById('titulo-hino-leitura').innerText = `${hino.numero}. ${hino.titulo}`;
-            document.getElementById('texto-hino').innerHTML = letraHTML;
+            const telaLeitura = document.getElementById('tela-leitura-hino');
+
+            // --- CORREÇÃO DO ERRO ---
+            // Verifica se os elementos onde vamos escrever existem.
+            // Se não existirem, o JavaScript cria eles agora mesmo.
             
-            telaListaHinos.classList.add('escondido');
-            telaLeituraHino.classList.remove('escondido');
+            let tituloEl = document.getElementById('titulo-hino-leitura');
+            if (!tituloEl) {
+                tituloEl = document.createElement('h2');
+                tituloEl.id = 'titulo-hino-leitura';
+                tituloEl.style.textAlign = 'center';
+                // Insere no topo da tela de leitura
+                telaLeitura.insertBefore(tituloEl, telaLeitura.firstChild);
+            }
+
+            let conteudoEl = document.getElementById('conteudo-hino-texto');
+            if (!conteudoEl) {
+                // Tenta achar pelo nome antigo caso você não tenha mudado o HTML
+                conteudoEl = document.getElementById('texto-hino'); 
+                
+                // Se ainda assim não achar, cria um novo
+                if (!conteudoEl) {
+                    conteudoEl = document.createElement('div');
+                    conteudoEl.id = 'conteudo-hino-texto';
+                    conteudoEl.className = 'hino-conteudo'; // Aplica o estilo novo
+                    telaLeitura.appendChild(conteudoEl);
+                }
+            }
+
+            // --- MONTAGEM DO CONTEÚDO ---
+            
+            // 1. Título
+            tituloEl.innerText = hino.titulo;
+
+            // 2. Coro (HTML)
+            const htmlCoro = hino.coro ? `
+                <div class="hino-coro">
+                    <span class="titulo-refrão">CORO</span>
+                    ${hino.coro}
+                </div>` : '';
+
+            // 3. Versos
+            let htmlFinal = "";
+            
+            if(hino.autor) htmlFinal += `<div class="hino-autor">${hino.autor}</div>`;
+
+            // Garante a ordem dos versos
+            const chavesVersos = Object.keys(hino.versos).sort((a,b) => parseInt(a) - parseInt(b));
+            
+            if (chavesVersos.length === 0 && htmlCoro) {
+                htmlFinal += htmlCoro; // Hino só com coro
+            } else {
+                chavesVersos.forEach((numVerso, i) => {
+                    const texto = hino.versos[numVerso];
+                    
+                    htmlFinal += `
+                        <div class="hino-verso">
+                            <span class="numero-verso">${numVerso}.</span> ${texto}
+                        </div>
+                    `;
+
+                    // Insere o Coro após a 1ª estrofe (índice 0)
+                    if (i === 0 && htmlCoro) {
+                        htmlFinal += htmlCoro;
+                    }
+                });
+            }
+
+            // --- INSERÇÃO NA TELA ---
+            conteudoEl.innerHTML = htmlFinal; // Agora é seguro, pois 'conteudoEl' com certeza existe
+
+            // Troca de tela
+            document.getElementById('tela-lista-hinos').classList.add('escondido');
+            telaLeitura.classList.remove('escondido');
+            
             alternarBarras('leitura');
-            areaPrincipal.scrollTop = 0; 
             window.scrollTo(0,0);
         }
         
