@@ -2741,6 +2741,57 @@
             }
         }
         
+        // Auxiliar para preparar o JSON do hinário assim que baixar
+        function processarJsonHinario(jsonBruto, tipo) {
+            const listaTratada = Object.values(jsonBruto).map(item => {
+                try {
+                    // Se não tiver hino, ignora
+                    if (!item.hino) return null;
+
+                    // 1. Resolve os Versos (Harpa vs Cantor)
+                    let versosUnificados = item.versos || item.verses || {};
+
+                    // 2. Separa Número e Título (Só para garantir a ordenação)
+                    let numero = "0";
+                    let tituloTexto = item.hino; // Pega o texto original
+
+                    let indiceTraco = item.hino.indexOf('-');
+                    
+                    if (indiceTraco > 0) {
+                        // Pega o número antes do traço
+                        numero = item.hino.substring(0, indiceTraco).trim();
+                        // Pega o título depois do traço (DO JEITO QUE VIER)
+                        tituloTexto = item.hino.substring(indiceTraco + 1).trim();
+                    }
+
+                    // *** REMOVI A PARTE QUE MUDAVA A LETRA ***
+                    // Agora o tituloTexto fica EXATAMENTE como está no JSON
+
+                    return {
+                        numero: numero,
+                        // Reconstrói visualmente: "581 - A ÚNICA ESPERANÇA"
+                        titulo: `${numero} - ${tituloTexto}`, 
+                        tituloPuro: tituloTexto,
+                        tituloCompleto: item.hino,
+                        versos: versosUnificados,
+                        coro: item.coro || "",
+                        autor: item.autor || item.Author || ""
+                    };
+                } catch (erro) {
+                    return null;
+                }
+            })
+            .filter(hino => hino !== null)
+            .sort((a, b) => {
+                let numA = parseInt(a.numero) || 0;
+                let numB = parseInt(b.numero) || 0;
+                return numA - numB;
+            });
+
+            if (typeof cacheHinarios === 'undefined') window.cacheHinarios = {};
+            cacheHinarios[tipo] = listaTratada;
+        }
+        
         /* Substitua sua função atualizarMetaColor antiga por esta: */
         function atualizarMetaColor(escuro) {
             // --- CORES (Ajuste aqui se quiser mudar o tom do "Azul") ---
@@ -3593,148 +3644,47 @@
         }
         
         // --- HINÁRIOS (AGORA ULTRA-RÁPIDOS) ---
-    
-        /* --- PACOTÃO DE CORREÇÃO DEFINITIVA (HINÁRIOS) --- */
-
-        // Variável global segura
-        var dadosHinario = []; 
-        if (typeof window.cacheHinarios === 'undefined') window.cacheHinarios = {};
-        
-        /* 1. FUNÇÃO QUE ARRUMA OS DADOS (Processador) */
-        function processarJsonHinario(jsonBruto, tipo) {
-            // Se o JSON vier vazio, retorna lista vazia pra não quebrar
-            if (!jsonBruto) return;
-        
-            // Converte Objeto em Lista (funciona pra Harpa e Cantor)
-            let listaBase = Array.isArray(jsonBruto) ? jsonBruto : Object.values(jsonBruto);
-        
-            const listaTratada = listaBase.map(item => {
-                try {
-                    if (!item.hino) return null;
-        
-                    // Resolve Versos (Harpa vs Cantor)
-                    let versosUnificados = item.versos || item.verses || {};
-        
-                    // Separa Número e Título com segurança
-                    let numero = "0"; 
-                    let tituloTexto = item.hino;
-        
-                    let indiceTraco = item.hino.indexOf('-');
-                    if (indiceTraco > 0) {
-                        numero = item.hino.substring(0, indiceTraco).trim();
-                        tituloTexto = item.hino.substring(indiceTraco + 1).trim();
-                    }
-        
-                    return {
-                        numero: numero,
-                        titulo: `${numero} - ${tituloTexto}`, // Visual da lista
-                        tituloPuro: tituloTexto,
-                        tituloCompleto: item.hino,
-                        versos: versosUnificados,
-                        coro: item.coro || "",
-                        autor: item.autor || item.Author || ""
-                    };
-                } catch (err) { return null; }
-            })
-            .filter(hino => hino !== null)
-            .sort((a, b) => (parseInt(a.numero) || 0) - (parseInt(b.numero) || 0));
-        
-            // Salva no cache global
-            window.cacheHinarios[tipo] = listaTratada;
-        }
-        
-        /* 2. FUNÇÃO QUE ABRE O ARQUIVO (Carregador) */
         async function abrirHinario(tipo) {
-            // UI
-            const telaEscolha = document.getElementById('tela-escolha-hinario');
-            const tituloApp = document.getElementById('titulo-app');
-            const loading = document.getElementById('loading'); // Se existir
-        
-            if(telaEscolha) telaEscolha.classList.add('escondido');
-            if(tituloApp) tituloApp.innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
-            if(loading) loading.style.display = 'block';
-        
+            document.getElementById('tela-escolha-hinario').classList.add('escondido');
+            document.getElementById('titulo-app').innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
+
+            // 1. Tenta pegar do Cache RAM
+            if (cacheHinarios[tipo]) {
+                dadosHinario = cacheHinarios[tipo];
+                renderizarListaHinos();
+                document.getElementById('tela-lista-hinos').classList.remove('escondido');
+                alternarBarras('navegacao');
+                return; 
+            }
+
+            // 2. Define o nome correto do arquivo
+            // Atenção: certifique-se que os arquivos estão na mesma pasta do index.html
+            let nomeArquivo = (tipo === 'harpa') ? "harpa.json" : "cantor_cristao.json";
+            
+            // Mostra loading se existir a variável, senão ignora
+            if(typeof loading !== 'undefined') loading.style.display = 'block';
+
             try {
-                // Verifica memória RAM primeiro
-                if (window.cacheHinarios[tipo]) {
-                    dadosHinario = window.cacheHinarios[tipo];
-                    renderizarListaHinos();
-                    finalizarAbertura();
-                    return;
-                }
-        
-                // Define nome do arquivo
-                let nomeArquivo = (tipo === 'harpa') ? "harpa.json" : "cantor_cristao.json";
-        
-                // Busca arquivo (sem timestamp para funcionar cache)
-                const resp = await fetch('./' + nomeArquivo);
-                if (!resp.ok) throw new Error("Arquivo não encontrado ou sem internet.");
-        
+                // Adicionando timestamp para evitar cache antigo do navegador
+                const resp = await fetch(`./${nomeArquivo}?v=${new Date().getTime()}`);
+                if(!resp.ok) throw new Error("Erro de rede ao buscar " + nomeArquivo);
+                
                 let json = await resp.json();
                 
-                // Processa
-                processarJsonHinario(json, tipo);
-                
-                // Pega o resultado processado
-                dadosHinario = window.cacheHinarios[tipo];
-        
-                // Se falhar e ficar vazio, cria array vazio pra não dar erro de forEach
-                if (!dadosHinario) dadosHinario = [];
-        
-                renderizarListaHinos();
-                finalizarAbertura();
-        
-            } catch (e) {
-                console.error(e);
-                alert("Erro ao abrir hinário: " + e.message);
-                if(telaEscolha) telaEscolha.classList.remove('escondido');
-            } finally {
-                if(loading) loading.style.display = 'none';
-            }
-        }
+                processarJsonHinario(json, tipo); // Converte o JSON em Array ordenado
+                dadosHinario = cacheHinarios[tipo]; // Usa o cache processado
 
-/* 3. FUNÇÃO QUE MOSTRA NA TELA (Renderizador Seguro) */
-        function renderizarListaHinos() {
-            const container = document.getElementById('lista-hinos-container');
-            if (!container) return; // Se não achar a div, para.
-        
-            container.innerHTML = '';
-        
-            // AQUI ESTAVA O SEU ERRO: Proteção contra lista vazia
-            if (!dadosHinario || !Array.isArray(dadosHinario) || dadosHinario.length === 0) {
-                container.innerHTML = '<div style="padding:20px; text-align:center">Nenhum hino carregado.</div>';
-                return;
+                renderizarListaHinos();
+                document.getElementById('tela-lista-hinos').classList.remove('escondido');
+                alternarBarras('navegacao');
+
+            } catch(e) {
+                console.error(e);
+                alert("Erro ao abrir Hinário: " + e.message);
+                document.getElementById('tela-escolha-hinario').classList.remove('escondido');
+            } finally {
+                if(typeof loading !== 'undefined') loading.style.display = 'none';
             }
-        
-            // Agora é seguro usar forEach
-            dadosHinario.forEach(hino => {
-                let div = document.createElement('div');
-                // Usa a classe existente ou cria estilo inline básico
-                div.className = 'item-lista-biblia'; 
-                div.style.padding = '15px';
-                div.style.borderBottom = '1px solid #eee';
-                div.style.cursor = 'pointer';
-                
-                div.innerText = hino.titulo;
-                
-                div.onclick = () => {
-                    // Chama sua função de abrir leitura (assumindo que ela existe)
-                    if(typeof abrirLeituraHinario === 'function') {
-                        abrirLeituraHinario(hino);
-                    } else {
-                        console.log("Hino clicado:", hino);
-                    }
-                };
-                container.appendChild(div);
-            });
-        }
-        
-        function finalizarAbertura() {
-            const telaLista = document.getElementById('tela-lista-hinos');
-            if(telaLista) telaLista.classList.remove('escondido');
-            
-            // Chama sua função de alternar barras se existir
-            if(typeof alternarBarras === 'function') alternarBarras('navegacao'); 
         }
 
         // --- LÓGICA DO MODAL DE LEITURA (PERFIL) ---
@@ -3808,6 +3758,34 @@
             janela.classList.toggle('tela-cheia');
         }
         
+        function renderizarListaHinos(filtro = "") {
+            const container = document.getElementById('lista-hinos-container');
+            container.innerHTML = "";
+            const termo = filtro.toLowerCase();
+
+            // Fragmento para melhorar performance ao carregar 600 hinos
+            const fragment = document.createDocumentFragment();
+
+            dadosHinario.forEach((hino, index) => {
+                // Lógica de busca (pelo número ou pelo título)
+                if(String(hino.titulo).toLowerCase().includes(termo) || String(hino.numero).includes(termo)) {
+                    
+                    // --- MUDANÇA AQUI: Criamos um BUTTON real ---
+                    const btn = document.createElement('button');
+                    btn.className = 'item-hino'; // Classe para o CSS estilizar
+                    
+                    // Conteúdo visual (Título em negrito)
+                    btn.innerHTML = `<strong>${hino.titulo}</strong>`;
+                    
+                    // Ação do clique
+                    btn.onclick = function() { lerHino(index); };
+                    
+                    fragment.appendChild(btn);
+                }
+            });
+
+            container.appendChild(fragment);
+        }
         
         function filtrarHinos() { 
             renderizarListaHinos(document.getElementById('busca-hino').value); 
@@ -4685,3 +4663,4 @@
     </script>
 </body>
 </html>
+
