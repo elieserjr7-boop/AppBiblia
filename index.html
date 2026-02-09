@@ -3646,66 +3646,55 @@
         // --- HINÁRIOS (AGORA ULTRA-RÁPIDOS) ---
     
         async function abrirHinario(tipo) {
-            // 1. Prepara a tela
+            // 1. Arruma a tela
             document.getElementById('tela-escolha-hinario').classList.add('escondido');
             document.getElementById('titulo-app').innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
-        
-            // Mostra loading
+            
+            // Mostra loading se existir
             if(typeof loading !== 'undefined') loading.style.display = 'block';
         
             try {
-                // 2. Tenta pegar da Memória RAM (instantâneo)
+                // 2. Define o arquivo
+                // ATENÇÃO: O nome do arquivo no GitHub TEM QUE SER IDÊNTICO a este aqui.
+                let nomeArquivo = (tipo === 'harpa') ? "harpa.json" : "cantor_cristao.json";
+                
+                // 3. Verifica se já temos na memória RAM (pra não travar à toa)
                 if (window.cacheHinarios && window.cacheHinarios[tipo]) {
                     dadosHinario = window.cacheHinarios[tipo];
                     renderizarListaHinos();
                     finalizarAbertura();
-                    return; 
+                    return;
                 }
         
-                // 3. Define o arquivo
-                let nomeArquivo = (tipo === 'harpa') ? "harpa.json" : "cantor_cristao.json";
+                // 4. Busca Simples (Sem timestamp, sem cache manual complexo)
+                const resp = await fetch('./' + nomeArquivo);
                 
-                // --- AQUI ESTAVA O ERRO ---
-                // Removi o "?v=..." . Agora ele busca o arquivo limpo.
-                const resp = await fetch(`./${nomeArquivo}`);
-                
-                if(!resp.ok) throw new Error(`Erro ${resp.status} ao buscar ${nomeArquivo}`);
-        
-                // --- TRAVA DE SEGURANÇA (NOVO) ---
-                // Isso obriga o navegador a salvar o arquivo para funcionar offline na próxima vez
-                // mesmo que o Service Worker tenha falhado.
-                try {
-                    const cloneRes = resp.clone(); // Clona a resposta
-                    caches.open('biblia-sagrada-v60').then(cache => {
-                        cache.put(`./${nomeArquivo}`, cloneRes);
-                        console.log("Arquivo salvo no cache forçadamente: " + nomeArquivo);
-                    });
-                } catch (errCache) {
-                    console.log("Aviso: Não foi possível forçar o cache (talvez em modo privado).");
+                // Se der erro 404 (Não encontrado), avisa logo
+                if (!resp.ok) {
+                    throw new Error(`Arquivo "${nomeArquivo}" não encontrado (Erro ${resp.status})`);
                 }
-                // ----------------------------------
-                
+        
                 let json = await resp.json();
                 
-                // 4. Processa (usa a função blindada que te passei antes)
+                // 5. Processa (Usando aquela função "Blindada" que te passei antes)
+                // Se você não tiver ela, me avise que mando de novo.
                 processarJsonHinario(json, tipo); 
+                
                 dadosHinario = window.cacheHinarios[tipo];
-        
-                // 5. Renderiza
                 renderizarListaHinos();
                 finalizarAbertura();
         
-            } catch(e) {
+            } catch (e) {
                 console.error(e);
-                alert("Erro ao abrir Hinário.\nSe você estiver sem internet, este hinário ainda não foi baixado.\n\nDetalhe: " + e.message);
+                alert("ERRO: Não foi possível abrir o hinário.\n\nMotivo: " + e.message + "\n\nDICA: Verifique se o nome do arquivo no GitHub é exatamente 'cantor_cristao.json' (tudo minúsculo).");
+                
+                // Volta pra tela inicial
                 document.getElementById('tela-escolha-hinario').classList.remove('escondido');
-                document.getElementById('titulo-app').innerText = "Bíblia Sagrada";
             } finally {
                 if(typeof loading !== 'undefined') loading.style.display = 'none';
             }
         }
         
-        // Certifique-se de ter esta função auxiliar também (se já tiver, não precisa copiar)
         function finalizarAbertura() {
             document.getElementById('tela-lista-hinos').classList.remove('escondido');
             if(typeof alternarBarras === 'function') alternarBarras('navegacao'); 
