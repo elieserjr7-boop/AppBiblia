@@ -2129,85 +2129,126 @@
         }
 
         /* --- MODO APRESENTAÇÃO (TELA CHEIA - SLIDES) --- */
+        /* 1. ESTRUTURA BASE (MODO CLARO PADRÃO) */
         #modo-apresentacao {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: var(--cor-fundo-html); /* Usa a cor do seu tema */
-            z-index: 9999; /* Fica acima de tudo */
+            
+            /* CORREÇÃO CRÍTICA: Definimos explicitamente Branco e Preto */
+            background-color: #ffffff;  /* Fundo Branco Puro */
+            color: #212529;             /* Texto Preto Suave (Leitura Confortável) */
+            
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 20px;
             text-align: center;
-            /* Evita seleção de texto ao arrastar */
             user-select: none; 
             -webkit-user-select: none;
+            
+            /* Transição suave ao trocar de tema */
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* Título (Livro e Capítulo) */
+        /* 2. OVERRIDE PARA MODO ESCURO */
+        body.modo-escuro #modo-apresentacao {
+            background-color: #000000 !important; /* Preto Absoluto (Cinema) */
+            color: #ecf0f1 !important;            /* Branco Gelo */
+        }
+
+        /* 3. TÍTULO (Livro e Capítulo) */
         #apresentacao-titulo {
             position: absolute;
             top: 20px;
-            left: 20px; /* Alinhado à esquerda para não bater no X */
-            font-size: 1.1rem;
-            color: #7f8c8d;
+            left: 20px;
+            font-size: 1.5rem;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 1px;
+            
+            /* Cor no Modo Claro */
+            color: #7f8c8d; 
         }
 
-        /* Botão Fechar (X) */
+        /* Ajuste Título no Modo Escuro */
+        body.modo-escuro #apresentacao-titulo {
+            color: #95a5a6;
+        }
+
+        /* 4. BOTÃO FECHAR (X) */
         #btn-fechar-apresentacao {
             position: absolute;
             top: 15px;
             right: 20px;
-            background: rgba(0,0,0,0.05); /* Fundo sutil */
+            
+            /* Fundo escuro leve para destacar no branco */
+            background: rgba(0, 0, 0, 0.1); 
+            color: #c0392b; /* Vermelho escuro */
+            
             border: none;
             font-size: 1.5rem;
-            width: 40px;
-            height: 40px;
+            width: 45px; /* Levemente maior para toque */
+            height: 45px;
             border-radius: 50%;
-            color: #e74c3c;
             cursor: pointer;
             z-index: 10001;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
         }
 
-        /* Texto do Versículo */
+        #btn-fechar-apresentacao:hover {
+            background: rgba(0, 0, 0, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Botão Fechar no Modo Escuro */
+        body.modo-escuro #btn-fechar-apresentacao {
+            background: rgba(255, 255, 255, 0.15); /* Fundo claro translúcido */
+            color: #e74c3c; /* Vermelho brilhante */
+        }
+
+        /* 5. TEXTO DO VERSÍCULO (O Principal) */
         #apresentacao-texto {
-            font-size: 1.8rem; /* Tamanho bom para celular */
+            font-size: 1.8rem;
             line-height: 1.5;
             font-weight: 500;
-            color: var(--cor-texto-principal);
+            
+            /* Herda a cor definida no pai, garantindo contraste */
+            color: inherit; 
+            
             max-width: 900px;
             max-height: 70vh;
-            overflow-y: auto; /* Permite rolar se o versículo for enorme */
-            padding: 0 10px;
+            overflow-y: auto;
+            padding: 0 15px;
         }
 
-        /* PCs e Tablets ganham fonte maior */
         @media (min-width: 768px) {
-            #apresentacao-texto { font-size: 2.5rem; }
+            #apresentacao-texto { font-size: 2.8rem; line-height: 1.4; }
         }
 
-        /* Rodapé (Número do Versículo) */
+        /* 6. RODAPÉ (Número do Versículo) */
         #apresentacao-rodape {
             position: absolute;
             bottom: 30px;
             font-size: 2rem;
-            color: #e67e22;
             font-weight: bold;
-            width: 100%;       /* Garante que centralize se usar text-align */
-            text-align: center; /* Centraliza o texto */
+            width: 100%;
+            text-align: center;
+            
+            /* Cor laranja destaque */
+            color: #d35400; 
         }
 
-        /* Setas Navegação PC */
+        body.modo-escuro #apresentacao-rodape {
+            color: #e67e22; /* Laranja mais claro neon */
+        }
+
+        /* 7. SETAS DE NAVEGAÇÃO (PC) */
         .nav-seta-pc {
             position: absolute;
             top: 50%;
@@ -2215,14 +2256,29 @@
             background: transparent;
             border: none;
             font-size: 3rem;
-            color: #bdc3c7;
             cursor: pointer;
             padding: 20px;
-            opacity: 0.5;
             transition: 0.3s;
-            display: none; /* Escondido no celular */
+            display: none;
+            z-index: 10002;
+            
+            /* Cor para Modo Claro (Cinza Escuro) */
+            color: #bdc3c7; 
         }
-        .nav-seta-pc:hover { opacity: 1; color: var(--cor-texto-principal); }
+
+        .nav-seta-pc:hover {
+            color: #2c3e50; /* Fica quase preto ao passar o mouse */
+            transform: translateY(-50%) scale(1.2); /* Efeito de zoom */
+        }
+
+        /* Setas no Modo Escuro */
+        body.modo-escuro .nav-seta-pc {
+            color: #555;
+        }
+        body.modo-escuro .nav-seta-pc:hover {
+            color: #ecf0f1; /* Fica branco ao passar o mouse */
+        }
+
         #seta-esq { left: 10px; }
         #seta-dir { right: 10px; }
 
