@@ -2128,6 +2128,106 @@
             .titulo-refrão, .hino-autor { color: #bbb; }
         }
 
+        /* --- MODO APRESENTAÇÃO (TELA CHEIA - SLIDES) --- */
+        #modo-apresentacao {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--cor-fundo-html); /* Usa a cor do seu tema */
+            z-index: 9999; /* Fica acima de tudo */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            /* Evita seleção de texto ao arrastar */
+            user-select: none; 
+            -webkit-user-select: none;
+        }
+
+        /* Título (Livro e Capítulo) */
+        #apresentacao-titulo {
+            position: absolute;
+            top: 20px;
+            left: 20px; /* Alinhado à esquerda para não bater no X */
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Botão Fechar (X) */
+        #btn-fechar-apresentacao {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(0,0,0,0.05); /* Fundo sutil */
+            border: none;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: #e74c3c;
+            cursor: pointer;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Texto do Versículo */
+        #apresentacao-texto {
+            font-size: 1.8rem; /* Tamanho bom para celular */
+            line-height: 1.5;
+            font-weight: 500;
+            color: var(--cor-texto-principal);
+            max-width: 900px;
+            max-height: 70vh;
+            overflow-y: auto; /* Permite rolar se o versículo for enorme */
+            padding: 0 10px;
+        }
+
+        /* PCs e Tablets ganham fonte maior */
+        @media (min-width: 768px) {
+            #apresentacao-texto { font-size: 2.5rem; }
+        }
+
+        /* Rodapé (Número do Versículo) */
+        #apresentacao-rodape {
+            position: absolute;
+            bottom: 30px;
+            font-size: 2rem;
+            color: #e67e22;
+            font-weight: bold;
+            width: 100%;       /* Garante que centralize se usar text-align */
+            text-align: center; /* Centraliza o texto */
+        }
+
+        /* Setas Navegação PC */
+        .nav-seta-pc {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            font-size: 3rem;
+            color: #bdc3c7;
+            cursor: pointer;
+            padding: 20px;
+            opacity: 0.5;
+            transition: 0.3s;
+            display: none; /* Escondido no celular */
+        }
+        .nav-seta-pc:hover { opacity: 1; color: var(--cor-texto-principal); }
+        #seta-esq { left: 10px; }
+        #seta-dir { right: 10px; }
+
+        @media (min-width: 768px) { .nav-seta-pc { display: block; } }
+
     </style>
 </head>
 <body id="corpo-app">
@@ -2429,6 +2529,7 @@
         <button type="button" class="btn-nav btn-voltar-menu" onclick="voltarInicioLeitura()">Voltar</button>
         <button type="button" class="btn-nav" onclick="navegarConteudo(-1)">&#9664;</button>
         <button type="button" class="btn-nav" onclick="navegarConteudo(1)">&#9654;</button>
+        <button type="button" class="btn-nav" onclick="abrirModoApresentacao()" style="flex: 1.5; font-size: 0.9rem;">Tela Cheia</button>
     </footer>
 
     <nav id="abas-principais">
@@ -2444,6 +2545,18 @@
             <span class="icone-aba">👤</span> Perfil
         </button>
     </nav>
+    <div id="modo-apresentacao" class="escondido">
+        <button id="btn-fechar-apresentacao" onclick="fecharModoApresentacao()">✕</button>
+        
+        <div id="apresentacao-titulo"></div>
+        
+        <button id="seta-esq" class="nav-seta-pc" onclick="mudarSlide(-1)">&#10094;</button>
+        <button id="seta-dir" class="nav-seta-pc" onclick="mudarSlide(1)">&#10095;</button>
+        
+        <div id="apresentacao-texto">Carregando...</div>
+        
+        <div id="apresentacao-rodape"></div>
+    </div>
 
     <script>
         // --- SERVICE WORKER ---
@@ -4672,9 +4785,236 @@
             // Limpa o input para permitir selecionar o mesmo arquivo novamente se falhar
             inputElement.value = '';
         }
+
+        /* --- SISTEMA DE TELA CHEIA / APRESENTAÇÃO (TEXTO LIMPO NO HINÁRIO) --- */
+        let slidesApresentacao = [];
+        let indiceSlideAtual = 0;
+
+        function abrirModoApresentacao() {
+            slidesApresentacao = [];
+            let titulo = "";
+            
+            // --- 1. MODO BÍBLIA (Sua lógica intacta) ---
+            if (!document.getElementById('tela-leitura').classList.contains('escondido')) {
+                const divBiblia = document.getElementById('texto-biblico');
+                titulo = document.getElementById('titulo-capitulo-leitura').innerText;
+                
+                // Estratégia: Pega qualquer parágrafo, div ou span que tenha texto
+                let blocos = divBiblia.querySelectorAll('p, div, span');
+                
+                // Se o HTML for muito "limpo" (sem tags), pega o texto cru e tenta dividir
+                if (blocos.length < 2) {
+                    let textoPuro = divBiblia.innerText;
+                    // Tenta dividir onde parece iniciar um versículo (ex: "1. ", "1 ", "2.")
+                    let partes = textoPuro.split(/(\d+[\.\s].*)/).filter(t => t.trim().length > 0);
+                    
+                    // Cria estrutura simulada para o loop abaixo funcionar
+                    blocos = partes.map(t => ({ innerText: t.trim() }));
+                }
+                
+                // Processa cada bloco encontrado
+                for (let i = 0; i < blocos.length; i++) {
+                    let texto = blocos[i].innerText.trim();
+                    if (!texto) continue; // Pula vazios
+
+                    // Regex: Procura número no início (ex: "1. No princípio" ou "1 No princípio")
+                    let match = texto.match(/^(\d+)[\.\s]+(.*)/);
+                    
+                    if (match) {
+                        // Achou versículo padrão com número
+                        // Separa: Num vai para o rodapé, Texto vai para a tela
+                        slidesApresentacao.push({ num: match[1], texto: match[2].trim() });
+                    } else {
+                        // Não achou número no início.
+                        if (!/^\d+$/.test(texto)) {
+                            slidesApresentacao.push({ num: "", texto: texto });
+                        }
+                    }
+                }
+            } 
+            
+            // --- 2. MODO HINÁRIO (Com limpeza de "1." e "Coro") ---
+            else if (!document.getElementById('tela-leitura-hino').classList.contains('escondido')) {
+                const divHino = document.getElementById('texto-hino');
+                titulo = document.getElementById('titulo-hino-leitura').innerText;
+                
+                let blocosBrutos = [];
+                let refrãoDetectado = null; 
+
+                // Pega todos os parágrafos do hino na tela
+                let elementos = divHino.querySelectorAll('p, div');
+                
+                // Se não achar tags, tenta pegar texto puro e dividir por linhas vazias
+                if (elementos.length === 0) {
+                    let txt = divHino.innerText;
+                    let parts = txt.split(/\n\s*\n/); // Quebra por linha vazia
+                    if (parts.length < 2) parts = txt.split('\n'); // Ou linha simples
+                    // Converte para formato simulado de elemento
+                    elementos = parts.map(t => ({ innerText: t.trim() })).filter(e => e.innerText.length > 0);
+                }
+
+                // --- DETECÇÃO DO CORO E ESTROFES ---
+                elementos.forEach((el, index) => {
+                    let textoOriginal = el.innerText.trim();
+                    if (!textoOriginal) return;
+
+                    // Identificação do que é o bloco (para o rodapé)
+                    let comecaComNumero = /^\d+/.test(textoOriginal); 
+                    let temPalavraCoro = /^(coro|refrão|estribilho)/i.test(textoOriginal);
+                    
+                    let ehRefrao = false;
+                    let label = "";
+
+                    if (temPalavraCoro) {
+                        ehRefrao = true;
+                        label = "Refrão";
+                    } else if (!comecaComNumero) {
+                        ehRefrao = true;
+                        label = "Refrão";
+                    } else {
+                        ehRefrao = false;
+                        let numMatch = textoOriginal.match(/^(\d+)/);
+                        label = numMatch ? "Estrofe " + numMatch[1] : "Estrofe";
+                    }
+
+                    // --- LIMPEZA DO TEXTO (A ALTERAÇÃO ESTÁ AQUI) ---
+                    let textoLimpo = textoOriginal;
+                    
+                    // 1. Remove números do início (ex: "1. ", "1 ")
+                    textoLimpo = textoLimpo.replace(/^\d+[\.\s-]*/, '');
+                    
+                    // 2. Remove palavras como "Coro:", "Refrão" do início
+                    textoLimpo = textoLimpo.replace(/^(coro|refrão|estribilho)[\:\.\s-]*/i, '');
+                    
+                    // 3. Limpa espaços
+                    textoLimpo = textoLimpo.trim();
+
+                    if (!textoLimpo) return; // Se sobrou vazio, ignora
+
+                    // Guarda o Refrão (versão limpa) na memória
+                    if (ehRefrao) {
+                        refrãoDetectado = { num: "Refrão", texto: textoLimpo, ehRefrao: true };
+                    }
+
+                    // Empurra a versão LIMPA para o array
+                    blocosBrutos.push({ num: label, texto: textoLimpo, ehRefrao: ehRefrao });
+                });
+
+                // --- MONTAGEM DA SEQUÊNCIA (Estrofe -> Coro -> Estrofe -> Coro) ---
+                slidesApresentacao = [];
+                
+                for (let i = 0; i < blocosBrutos.length; i++) {
+                    let bloco = blocosBrutos[i];
+                    
+                    // Adiciona o bloco atual
+                    slidesApresentacao.push(bloco);
+
+                    // LOGICA DE REPETIÇÃO:
+                    if (refrãoDetectado && !bloco.ehRefrao) {
+                        let proximo = blocosBrutos[i + 1];
+                        if (!proximo || !proximo.ehRefrao) {
+                            slidesApresentacao.push(refrãoDetectado);
+                        }
+                    }
+                }
+                
+            } else {
+                return; // Nada aberto
+            }
+            
+            // --- FINALIZAÇÃO E ABERTURA ---
+            if (slidesApresentacao.length === 0) { 
+                alert("Texto não identificado. Tente recarregar a página."); 
+                return; 
+            }
+
+            // Renderizar na Tela Cheia
+            document.getElementById('apresentacao-titulo').innerText = titulo;
+            indiceSlideAtual = 0;
+            renderizarSlide();
+            document.getElementById('modo-apresentacao').classList.remove('escondido');
+            
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(()=>{});
+            }
+            document.getElementById('modo-apresentacao').classList.remove('escondido');
+
+            // --- ADICIONE ESTA LINHA AQUI ---
+            // Esconde a barra de navegação de baixo para não ficar duplicada
+            if(document.getElementById('rodape-nav')) {
+                document.getElementById('rodape-nav').classList.add('escondido');
+            }
+
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(()=>{});
+            }
+        }
+
+        function fecharModoApresentacao() {
+            document.getElementById('modo-apresentacao').classList.add('escondido');
+            if (document.exitFullscreen && document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+            if(document.getElementById('rodape-nav')) {
+                document.getElementById('rodape-nav').classList.remove('escondido');
+            }
+        }
+
+        function renderizarSlide() {
+            if (slidesApresentacao.length === 0) return;
+            
+            const slide = slidesApresentacao[indiceSlideAtual];
+            document.getElementById('apresentacao-texto').innerText = slide.texto;
+            
+            // Se for número, coloca "Versículo X", se for texto (estrofe), coloca direto
+            const rodape = isNaN(slide.num) ? slide.num : "Versículo " + slide.num;
+            document.getElementById('apresentacao-rodape').innerText = rodape;
+        }
+
+        function mudarSlide(direcao) {
+            let novoIndice = indiceSlideAtual + direcao;
+            
+            if (novoIndice >= 0 && novoIndice < slidesApresentacao.length) {
+                indiceSlideAtual = novoIndice;
+                renderizarSlide();
+            }
+        }
+
+        // --- DETECÇÃO DE GESTOS (SWIPE) E TECLADO ---
+
+        // Teclado (PC)
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('modo-apresentacao').classList.contains('escondido')) return;
+            
+            if (e.key === "ArrowRight") mudarSlide(1);
+            if (e.key === "ArrowLeft") mudarSlide(-1);
+            if (e.key === "Escape") fecharModoApresentacao();
+        });
+
+        // Toque (Celular)
+        let toqueInicioX = 0;
+        let toqueFimX = 0;
+
+        const telaApresentacao = document.getElementById('modo-apresentacao');
+
+        telaApresentacao.addEventListener('touchstart', (e) => {
+            toqueInicioX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        telaApresentacao.addEventListener('touchend', (e) => {
+            toqueFimX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+
+        function handleSwipe() {
+            // Deslizar para ESQUERDA (<<) avança
+            if (toqueFimX < toqueInicioX - 50) mudarSlide(1);
+            
+            // Deslizar para DIREITA (>>) volta
+            if (toqueFimX > toqueInicioX + 50) mudarSlide(-1);
+        }
         
         iniciarApp();
     </script>
 </body>
 </html>
-
