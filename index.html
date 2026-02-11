@@ -2216,20 +2216,31 @@
 
         /* 5. TEXTO DO VERSÍCULO (O Principal) */
         #apresentacao-texto {
-            font-size: 1.8rem;
-            line-height: 1.5;
+            /* Removemos o tamanho fixo, o JS vai decidir isso */
+            /* font-size: 1.8rem;  <-- PODE REMOVER OU COMENTAR ESSA LINHA */
+            
+            line-height: 1.4; /* Um pouco mais apertado ajuda a caber mais */
             font-weight: 500;
             
-            /* Herda a cor definida no pai, garantindo contraste */
             color: inherit; 
             
-            max-width: 900px;
-            max-height: 70vh;
-            overflow-y: auto;
+            width: 100%;       /* Garante uso total da largura */
+            max-width: 1000px; /* Um pouco mais largo */
+            
+            /* A MÁGICA: Define uma altura fixa para o container de texto */
+            height: 70vh;      /* Ocupa 70% da altura da tela */
+            
+            /* Tira a barra de rolagem */
+            overflow: hidden; 
+            
+            /* Centraliza verticalmente e horizontalmente */
+            display: flex;
+            align-items: center; 
+            justify-content: center;
             padding: 0 15px;
         }
 
-        @media (min-width: 768px) {
+        /*@media (min-width: 768px) {
             #apresentacao-texto { font-size: 2.8rem; line-height: 1.4; }
         }
 
@@ -5109,11 +5120,45 @@
             if (slidesApresentacao.length === 0) return;
             
             const slide = slidesApresentacao[indiceSlideAtual];
-            document.getElementById('apresentacao-texto').innerText = slide.texto;
+            const divTexto = document.getElementById('apresentacao-texto');
+            const divRodape = document.getElementById('apresentacao-rodape');
             
-            // Se for número, coloca "Versículo X", se for texto (estrofe), coloca direto
+            // 1. Coloca o texto na tela
+            divTexto.innerText = slide.texto;
+            
+            // 2. Define o rodapé
             const rodape = isNaN(slide.num) ? slide.num : "Versículo " + slide.num;
-            document.getElementById('apresentacao-rodape').innerText = rodape;
+            divRodape.innerText = rodape;
+        
+            // 3. CHAMA A MÁGICA: Ajusta o tamanho da fonte para caber
+            ajustarFonteAoContainer(divTexto);
+        }
+
+        function ajustarFonteAoContainer(elemento) {
+            // Definição dos limites (Pode ajustar conforme seu gosto)
+            let tamanhoMaximo = 60; // Tamanho máximo da fonte (em pixels) - Começa grande!
+            let tamanhoMinimo = 14; // Tamanho mínimo legível
+            
+            // Detecta se é celular para começar um pouco menor se quiser
+            if (window.innerWidth < 768) {
+                tamanhoMaximo = 40; 
+            }
+        
+            // Começa aplicando o tamanho máximo
+            let tamanhoAtual = tamanhoMaximo;
+            elemento.style.fontSize = tamanhoAtual + "px";
+        
+            // O LOOP MÁGICO
+            // Enquanto o texto for maior que a caixa (scrollHeight > clientHeight)
+            // OU a largura do texto estourar muito (scrollWidth > clientWidth)
+            while (
+                (elemento.scrollHeight > elemento.clientHeight || 
+                 elemento.scrollWidth > elemento.clientWidth) && 
+                tamanhoAtual > tamanhoMinimo
+            ) {
+                tamanhoAtual--; // Diminui 1 pixel
+                elemento.style.fontSize = tamanhoAtual + "px"; // Aplica e testa de novo
+            }
         }
 
         function mudarSlide(direcao) {
