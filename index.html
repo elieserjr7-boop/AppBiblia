@@ -2309,6 +2309,44 @@
                 padding-top: 20px; 
             }
         }
+
+        /* --- ESTILO DA BARRA DE PESQUISA --- */
+        #input-filtro-biblia {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 8px;
+            display: block;
+            outline: none; /* Remove a linha azul padrão ao clicar */
+            transition: all 0.3s ease; /* Suaviza a mudança de cor */
+        
+            /* Cores Padrão (Modo Claro) */
+            background-color: #ffffff;
+            color: #333333;
+            border: 1px solid #cccccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Sombra suave */
+        }
+        
+        #input-filtro-biblia:focus {
+            border-color: #3498db; /* Cor da borda quando clica para escrever */
+        }
+        
+        /* --- AJUSTE PARA MODO ESCURO --- */
+        @media (prefers-color-scheme: dark) {
+            #input-filtro-biblia {
+                /* Fundo escuro para não ofuscar */
+                background-color: #2c2c2c; 
+                /* Texto branco para leitura */
+                color: #ecf0f1;            
+                /* Borda escura para combinar */
+                border: 1px solid #444444; 
+            }
+        
+            /* Cor do texto de ajuda "Buscar livro..." no modo escuro */
+            #input-filtro-biblia::placeholder {
+                color: #aaaaaa;
+            }
+        }
         
     </style>
 </head>
@@ -2338,7 +2376,6 @@
                        id="input-filtro-biblia" 
                        placeholder="Buscar livro..." 
                        autocomplete="off"
-                       style="width: 100%; padding: 15px; font-size: 18px; border-radius: 8px; border: 1px solid #ccc; display: block;"
                        oninput="filtrarLivrosBiblia()">
             </div>
             <div id="tela-livros"></div>
