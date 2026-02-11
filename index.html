@@ -2311,41 +2311,39 @@
         }
 
         /* --- ESTILO DA BARRA DE PESQUISA --- */
+        /* --- ESTILO GERAL DA BARRA DE PESQUISA (MODO CLARO / PADRÃO) --- */
         #input-filtro-biblia {
             width: 100%;
             padding: 15px;
             font-size: 18px;
             border-radius: 8px;
             display: block;
-            outline: none; /* Remove a linha azul padrão ao clicar */
-            transition: all 0.3s ease; /* Suaviza a mudança de cor */
+            outline: none;
+            transition: all 0.3s ease; /* Suaviza a troca de cor */
         
-            /* Cores Padrão (Modo Claro) */
+            /* Cores Padrão (Claro) */
             background-color: #ffffff;
             color: #333333;
             border: 1px solid #cccccc;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Sombra suave */
         }
         
+        /* Efeito de foco (quando clica para digitar) */
         #input-filtro-biblia:focus {
-            border-color: #3498db; /* Cor da borda quando clica para escrever */
+            border-color: #3498db; 
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
         }
         
-        /* --- AJUSTE PARA MODO ESCURO --- */
-        @media (prefers-color-scheme: dark) {
-            #input-filtro-biblia {
-                /* Fundo escuro para não ofuscar */
-                background-color: #2c2c2c; 
-                /* Texto branco para leitura */
-                color: #ecf0f1;            
-                /* Borda escura para combinar */
-                border: 1px solid #444444; 
-            }
+        /* --- ESTILO ESPECÍFICO PARA O MODO ESCURO --- */
+        /* Só ativa quando o body tem a classe "modo-escuro" */
+        body.modo-escuro #input-filtro-biblia {
+            background-color: #2c2c2c; /* Fundo cinza escuro */
+            border-color: #444444;     /* Borda discreta */
+            color: #eeeeee;            /* Texto claro */
+        }
         
-            /* Cor do texto de ajuda "Buscar livro..." no modo escuro */
-            #input-filtro-biblia::placeholder {
-                color: #aaaaaa;
-            }
+        /* Cor do texto de ajuda "Buscar livro..." no modo escuro */
+        body.modo-escuro #input-filtro-biblia::placeholder {
+            color: #aaaaaa;
         }
         
     </style>
