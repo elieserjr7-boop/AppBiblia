@@ -2229,7 +2229,6 @@
 
         @media (min-width: 768px) {
             #apresentacao-texto { font-size: 2.8rem; line-height: 1.4; }
-            #apresentacao-titulo { font-size: 1rem; letter-spacing: 1px; }
         }
 
         /* 6. RODAPÉ (Número do Versículo) */
@@ -2284,6 +2283,14 @@
         #seta-dir { right: 10px; }
 
         @media (min-width: 768px) { .nav-seta-pc { display: block; } }
+
+        /* Ajuste para ecrãs pequenos (Telemóveis) */
+        @media (max-width: 600px) {
+            #apresentacao-titulo {
+                font-size: 1.1rem; /* Fonte um pouco menor */
+                top: 65px;         /* Ajuste fino da posição */
+            }
+        }
 
     </style>
 </head>
