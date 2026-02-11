@@ -2284,14 +2284,30 @@
 
         @media (min-width: 768px) { .nav-seta-pc { display: block; } }
 
-        /* Ajuste para ecrãs pequenos (Telemóveis) */
-        @media (max-width: 600px) {
+        /* --- AJUSTE EXCLUSIVO PARA TELEMÓVEL (Telas menores que 768px) --- */
+        @media (max-width: 768px) {
             #apresentacao-titulo {
-                font-size: 1.1rem; /* Fonte um pouco menor */
-                top: 65px;         /* Ajuste fino da posição */
+                /* Empurra o título para baixo da linha do botão X */
+                top: 70px; 
+        
+                /* Ajustes de segurança para o texto não sair da tela no celular */
+                left: 0;
+                width: 100%;
+                padding: 0 15px;      /* Margem interna para não colar nas bordas */
+                text-align: center;   /* Centraliza para ficar mais bonito no celular */
+                
+                /* Opcional: Reduz um pouco a fonte se o título for gigante */
+                font-size: 1.2rem;    
+                line-height: 1.3;
+                box-sizing: border-box; /* Garante que o padding não aumente a largura total */
+            }
+            
+            /* Ajuste extra: sobe um pouco o texto principal para compensar o título mais baixo */
+            #apresentacao-texto {
+                padding-top: 20px; 
             }
         }
-
+        
     </style>
 </head>
 <body id="corpo-app">
