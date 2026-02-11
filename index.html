@@ -3491,6 +3491,22 @@
         
         // --- RENDERIZAÇÃO BÍBLIA ---
         function renderizarLivros() {
+            const divBusca = document.getElementById('div-busca-biblia');
+            const inputBusca = document.getElementById('input-filtro-biblia');
+            
+            if (divBusca) {
+                divBusca.style.display = 'block'; // Mostra a barra
+            }
+            
+            if (inputBusca) {
+                inputBusca.value = ''; // Limpa o texto digitado anteriormente
+            }
+            // --------------------------------------------------------------
+        
+            tituloApp.innerText = "Bíblia Sagrada"; // Esta linha já existe no seu código
+            
+            telaLivros.classList.remove('escondido'); // Garante que a tela aparece
+            telaCapitulos.classList.add('escondido');  // Esconde os capítulos
             telaLivros.innerHTML = "";
             telaCapitulos.classList.add('escondido');
             telaLeitura.classList.add('escondido');
@@ -3528,6 +3544,9 @@
             
             // 2. Troca as telas
             telaLivros.classList.add('escondido');
+            const divBusca = document.getElementById('div-busca-biblia');
+            if (divBusca) divBusca.style.display = 'none';
+            // --------------------------------------------------
             telaCapitulos.classList.remove('escondido');
             telaCapitulos.innerHTML = "";
             
