@@ -2333,6 +2333,14 @@
     <main id="area-principal">
         
         <div id="tab-biblia">
+            <div style="padding: 10px 15px 0 15px;">
+                <input type="text" 
+                       id="input-filtro-biblia" 
+                       placeholder="Buscar livro..." 
+                       autocomplete="off"
+                       style="width: 100%; padding: 15px; font-size: 18px; border-radius: 8px; border: 1px solid #ccc; display: block;"
+                       oninput="filtrarLivrosBiblia()">
+            </div>
             <div id="tela-livros"></div>
             <div id="tela-capitulos" class="grade-capitulos escondido"></div>
             
@@ -5094,6 +5102,48 @@
             
             // Deslizar para DIREITA (>>) volta
             if (toqueFimX > toqueInicioX + 50) mudarSlide(-1);
+        }
+
+        // --- FUNÇÃO DE BUSCA INSTANTÂNEA NA BÍBLIA ---
+        function filtrarLivrosBiblia() {
+            // 1. Pega o que foi digitado, transforma em minúsculo e remove acentos
+            // Exemplo: "Êxodo" vira "exodo" para facilitar a busca
+            const termo = document.getElementById('input-filtro-biblia').value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+        
+            // 2. Seleciona todos os grupos de livros (Antigo e Novo Testamento)
+            const grades = document.querySelectorAll('#tela-livros .grade-livros');
+        
+            grades.forEach(grade => {
+                let livrosVisiveisNaGrade = 0;
+                const livros = grade.querySelectorAll('.btn-livro');
+        
+                livros.forEach(livro => {
+                    // Pega o nome do livro (ex: "Gênesis") e limpa também
+                    const nomeLivro = livro.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+        
+                    // Verifica se o que você digitou está dentro do nome do livro
+                    if (nomeLivro.includes(termo)) {
+                        livro.style.display = ""; // Mostra o livro
+                        livrosVisiveisNaGrade++;
+                    } else {
+                        livro.style.display = "none"; // Esconde o livro
+                    }
+                });
+        
+                // 3. Lógica Inteligente para os Títulos (Antigo/Novo Testamento)
+                // Se não sobrou nenhum livro visível nesta grade, esconde o título também!
+                const titulo = grade.previousElementSibling; // O elemento antes da grade é o título (separador)
+                
+                if (titulo && titulo.classList.contains('separador-testamento')) {
+                    if (livrosVisiveisNaGrade > 0) {
+                        titulo.style.display = ""; // Mostra o título "Antigo/Novo Testamento"
+                        grade.style.display = "";  // Mostra a grade
+                    } else {
+                        titulo.style.display = "none"; // Esconde tudo para não ficar buraco na tela
+                        grade.style.display = "none";
+                    }
+                }
+            });
         }
         
         iniciarApp();
