@@ -5290,27 +5290,23 @@
             });
         }
 
-        /* --- CONTROLE INTELIGENTE DE SCROLL PELO TECLADO --- */
+        /* --- CONTROLE DE SCROLL (APENAS BÍBLIA) --- */
         document.addEventListener('keydown', function(e) {
             
             // 1. Só nos importamos com setas Cima e Baixo
             if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
         
-            // 2. Se o Modo Apresentação estiver aberto, não fazemos nada (lá já tem a lógica dele)
+            // 2. Se o Modo Apresentação estiver aberto, sai fora
             const modoApresentacao = document.getElementById('modo-apresentacao');
             if (modoApresentacao && !modoApresentacao.classList.contains('escondido')) return;
         
-            // 3. Identifica qual tela está visível no seu HTML agora
+            // 3. Identifica qual tela está visível
             let elementoParaRolar = null;
         
-            // Elementos baseados no seu HTML
             const telaLivros = document.getElementById('tela-livros');
             const telaCapitulos = document.getElementById('tela-capitulos');
-            const telaListaHinos = document.getElementById('tela-lista-hinos'); // A tela wrapper
-            const containerHinos = document.getElementById('lista-hinos-container'); // A lista que rola
         
             // VERIFICAÇÃO 1: Tela de Livros
-            // (Verifica se não tem a classe 'escondido' E se está visível na tela mesmo)
             if (telaLivros && !telaLivros.classList.contains('escondido') && telaLivros.offsetParent !== null) {
                 elementoParaRolar = telaLivros; 
             } 
@@ -5318,16 +5314,16 @@
             else if (telaCapitulos && !telaCapitulos.classList.contains('escondido') && telaCapitulos.offsetParent !== null) {
                 elementoParaRolar = telaCapitulos;
             }
-            // VERIFICAÇÃO 3: Lista de Hinos
-            else if (telaListaHinos && !telaListaHinos.classList.contains('escondido') && telaListaHinos.offsetParent !== null) {
-                elementoParaRolar = containerHinos; // Note que aqui rolamos o container interno
-            }
+            
+            // NOTA: Removi a parte dos Hinos. Agora, quando estiver nos hinos, 
+            // essa variável continua "null". O código abaixo não roda, 
+            // e o navegador assume o scroll nativo da página (janela inteira).
         
-            // 4. Executa a rolagem manual na div correta
+            // 4. Executa a rolagem manual APENAS se for Bíblia
             if (elementoParaRolar) {
-                e.preventDefault(); // Impede que o navegador role a página inteira atrás
+                e.preventDefault(); // Impede o navegador de mexer a tela inteira
         
-                const velocidade = 150; // Pixels por toque (aumente se quiser mais rápido)
+                const velocidade = 100; // Ajuste a velocidade aqui
         
                 if (e.key === 'ArrowDown') {
                     elementoParaRolar.scrollTop += velocidade;
