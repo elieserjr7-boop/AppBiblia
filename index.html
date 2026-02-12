@@ -5123,48 +5123,58 @@
             const divTexto = document.getElementById('apresentacao-texto');
             const divRodape = document.getElementById('apresentacao-rodape');
             
-            // 1. Coloca o texto na tela
-            divTexto.innerText = slide.texto;
+            // 1. A CORTINA: Deixa invisível imediatamente para evitar o "piscada"
+            divTexto.style.opacity = "0";
+            // Remove a transição temporariamente para a mudança ser instantânea internamente
+            divTexto.style.transition = "none"; 
             
-            // 2. Define o rodapé
+            // 2. Coloca o texto e o rodapé
+            divTexto.innerText = slide.texto;
             const rodape = isNaN(slide.num) ? slide.num : "Versículo " + slide.num;
             divRodape.innerText = rodape;
         
-            // --- CORREÇÃO AQUI ---
-            // Removemos qualquer tamanho fixo prévio para recalcular do zero
+            // 3. Reseta o tamanho da fonte para o padrão antes de calcular
             divTexto.style.fontSize = ""; 
         
-            // Usamos setTimeout para esperar o navegador "respirar" e desenhar a tela
+            // 4. Pequeno delay técnico (4ms) para o navegador renderizar o HTML oculto
+            // E então chamamos o ajuste que vai revelar o texto no final
             setTimeout(() => {
                 ajustarFonteAoContainer(divTexto);
-            }, 10); // 10ms é imperceptível para o olho, mas eterno para o processador
+            }, 4); 
         }
 
         function ajustarFonteAoContainer(elemento) {
-            // Definição dos limites (Pode ajustar conforme seu gosto)
-            let tamanhoMaximo = 60; // Tamanho máximo da fonte (em pixels) - Começa grande!
-            let tamanhoMinimo = 14; // Tamanho mínimo legível
+            // Configurações de tamanho (pode manter as suas)
+            let tamanhoMaximo = 70; // Começamos bem grande
+            let tamanhoMinimo = 14; 
             
-            // Detecta se é celular para começar um pouco menor se quiser
             if (window.innerWidth < 768) {
-                tamanhoMaximo = 40; 
+                tamanhoMaximo = 45; // Um pouco menor no celular
             }
         
-            // Começa aplicando o tamanho máximo
             let tamanhoAtual = tamanhoMaximo;
             elemento.style.fontSize = tamanhoAtual + "px";
         
-            // O LOOP MÁGICO
-            // Enquanto o texto for maior que a caixa (scrollHeight > clientHeight)
-            // OU a largura do texto estourar muito (scrollWidth > clientWidth)
+            // --- O CÁLCULO (Acontece enquanto está invisível) ---
+            // Enquanto o texto vazar da tela (altura ou largura), diminui a fonte
             while (
                 (elemento.scrollHeight > elemento.clientHeight || 
                  elemento.scrollWidth > elemento.clientWidth) && 
                 tamanhoAtual > tamanhoMinimo
             ) {
-                tamanhoAtual--; // Diminui 1 pixel
-                elemento.style.fontSize = tamanhoAtual + "px"; // Aplica e testa de novo
+                tamanhoAtual--; // Diminui 1px
+                elemento.style.fontSize = tamanhoAtual + "px";
             }
+        
+            // --- A REVELAÇÃO ---
+            // Agora que o tamanho está perfeito:
+            
+            // 1. (Opcional) Adiciona uma transição suave de opacidade (fade-in muito rápido)
+            // Se quiser que apareça seco, remova esta linha:
+            elemento.style.transition = "opacity 0.15s ease-out"; 
+            
+            // 2. Mostra o texto para o usuário
+            elemento.style.opacity = "1";
         }
 
         function mudarSlide(direcao) {
