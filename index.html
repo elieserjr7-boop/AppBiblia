@@ -2356,6 +2356,37 @@
         body.modo-escuro #input-filtro-biblia::placeholder {
             color: #aaaaaa;
         }
+
+        /* --- HABILITAR ROLAGEM INTERNA (CRÍTICO PARA O TECLADO) --- */
+
+        /* 1. Lista de Livros (Bíblia) */
+        #tela-livros {
+            /* Define uma altura máxima: Ocupa 75% da altura da tela */
+            max-height: 75vh; 
+            /* Se passar disso, cria a barra de rolagem SÓ AQUI dentro */
+            overflow-y: auto; 
+            /* Rolagem suave */
+            scroll-behavior: smooth; 
+            
+            /* Mantém os seus ajustes visuais */
+            padding-bottom: 80px; /* Espaço extra no fim para não cortar o último botão */
+        }
+        
+        /* 2. Grade de Capítulos */
+        #tela-capitulos {
+            max-height: 70vh; /* Um pouco menor para caber o título */
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 80px;
+        }
+        
+        /* 3. Lista de Hinos (Dentro da aba hinários) */
+        #lista-hinos-container {
+            max-height: 65vh; /* Ajuste conforme a necessidade */
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 100px;
+        }
         
     </style>
 </head>
@@ -5261,6 +5292,53 @@
                 }
             });
         }
+
+        /* --- CONTROLE INTELIGENTE DE SCROLL PELO TECLADO --- */
+        document.addEventListener('keydown', function(e) {
+            
+            // 1. Só nos importamos com setas Cima e Baixo
+            if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+        
+            // 2. Se o Modo Apresentação estiver aberto, não fazemos nada (lá já tem a lógica dele)
+            const modoApresentacao = document.getElementById('modo-apresentacao');
+            if (modoApresentacao && !modoApresentacao.classList.contains('escondido')) return;
+        
+            // 3. Identifica qual tela está visível no seu HTML agora
+            let elementoParaRolar = null;
+        
+            // Elementos baseados no seu HTML
+            const telaLivros = document.getElementById('tela-livros');
+            const telaCapitulos = document.getElementById('tela-capitulos');
+            const telaListaHinos = document.getElementById('tela-lista-hinos'); // A tela wrapper
+            const containerHinos = document.getElementById('lista-hinos-container'); // A lista que rola
+        
+            // VERIFICAÇÃO 1: Tela de Livros
+            // (Verifica se não tem a classe 'escondido' E se está visível na tela mesmo)
+            if (telaLivros && !telaLivros.classList.contains('escondido') && telaLivros.offsetParent !== null) {
+                elementoParaRolar = telaLivros; 
+            } 
+            // VERIFICAÇÃO 2: Tela de Capítulos
+            else if (telaCapitulos && !telaCapitulos.classList.contains('escondido') && telaCapitulos.offsetParent !== null) {
+                elementoParaRolar = telaCapitulos;
+            }
+            // VERIFICAÇÃO 3: Lista de Hinos
+            else if (telaListaHinos && !telaListaHinos.classList.contains('escondido') && telaListaHinos.offsetParent !== null) {
+                elementoParaRolar = containerHinos; // Note que aqui rolamos o container interno
+            }
+        
+            // 4. Executa a rolagem manual na div correta
+            if (elementoParaRolar) {
+                e.preventDefault(); // Impede que o navegador role a página inteira atrás
+        
+                const velocidade = 150; // Pixels por toque (aumente se quiser mais rápido)
+        
+                if (e.key === 'ArrowDown') {
+                    elementoParaRolar.scrollTop += velocidade;
+                } else {
+                    elementoParaRolar.scrollTop -= velocidade;
+                }
+            }
+        });
         
         iniciarApp();
     </script>
