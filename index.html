@@ -2359,33 +2359,22 @@
 
         /* --- HABILITAR ROLAGEM INTERNA (CRÍTICO PARA O TECLADO) --- */
 
-        /* 1. Lista de Livros (Bíblia) */
-        #tela-livros {
-            /* Define uma altura máxima: Ocupa 75% da altura da tela */
-            max-height: 75vh; 
-            /* Se passar disso, cria a barra de rolagem SÓ AQUI dentro */
-            overflow-y: auto; 
-            /* Rolagem suave */
-            scroll-behavior: smooth; 
-            
-            /* Mantém os seus ajustes visuais */
-            padding-bottom: 80px; /* Espaço extra no fim para não cortar o último botão */
-        }
-        
-        /* 2. Grade de Capítulos */
-        #tela-capitulos {
-            max-height: 70vh; /* Um pouco menor para caber o título */
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            padding-bottom: 80px;
-        }
-        
-        /* 3. Lista de Hinos (Dentro da aba hinários) */
+        /* --- ROLAGEM AJUSTADA (SEM ESPAÇO PRETO NO FINAL) --- */
+
+        #tela-livros, 
+        #tela-capitulos, 
         #lista-hinos-container {
-            max-height: 65vh; /* Ajuste conforme a necessidade */
+            /* MUDANÇA 1: Altura Dinâmica */
+            /* Calcula: 100% da tela MENOS o espaço do topo e das abas (~180px) */
+            /* Isso faz a lista ir até o finalzinho sem sobrar espaço preto */
+            height: calc(100vh - 180px); 
+            
+            /* Permite a rolagem funcionar com o teclado */
             overflow-y: auto;
             scroll-behavior: smooth;
-            padding-bottom: 100px;
+        
+            /* MUDANÇA 2: Removi o espaço extra que você não gostou */
+            padding-bottom: 10px !important; 
         }
         
     </style>
