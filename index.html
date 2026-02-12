@@ -2358,34 +2358,48 @@
         }
 
         /* --- HABILITAR ROLAGEM INTERNA (CRÍTICO PARA O TECLADO) --- */
-
-        /* 1. Lista de Livros (Bíblia) */
-        #tela-livros {
-            /* Define uma altura máxima: Ocupa 75% da altura da tela */
-            max-height: 75vh; 
-            /* Se passar disso, cria a barra de rolagem SÓ AQUI dentro */
-            overflow-y: auto; 
-            /* Rolagem suave */
-            scroll-behavior: smooth; 
+        /* --- VERSÃO PC (Telas acima de 1024px) --- */
+        @media (min-width: 1024px) {
+        
+            /* 1. Lista de Livros (Bíblia) */
+            #tela-livros {
+                /* Define uma altura máxima: Ocupa 75% da altura da tela */
+                max-height: 75vh !important; 
+                
+                /* Se passar disso, cria a barra de rolagem SÓ AQUI dentro */
+                overflow-y: auto !important; 
+                
+                /* Rolagem suave */
+                scroll-behavior: smooth; 
+                
+                /* Mantém os seus ajustes visuais */
+                padding-bottom: 80px !important; 
+                
+                display: block !important; /* Garante que a lista não estique */
+            }
             
-            /* Mantém os seus ajustes visuais */
-            padding-bottom: 80px; /* Espaço extra no fim para não cortar o último botão */
-        }
+            /* 2. Grade de Capítulos */
+            #tela-capitulos {
+                max-height: 70vh !important; /* Um pouco menor para caber o título */
+                overflow-y: auto !important;
+                scroll-behavior: smooth;
+                padding-bottom: 80px !important;
         
-        /* 2. Grade de Capítulos */
-        #tela-capitulos {
-            max-height: 70vh; /* Um pouco menor para caber o título */
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            padding-bottom: 80px;
-        }
-        
-        /* 3. Lista de Hinos (Dentro da aba hinários) */
-        #lista-hinos-container {
-            max-height: 65vh; /* Ajuste conforme a necessidade */
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            padding-bottom: 100px;
+                /* CORREÇÃO MALAQUIAS: Mantém tudo no topo e sem esticar */
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important; 
+            }
+            
+            /* 3. Lista de Hinos (Dentro da aba hinários) */
+            #lista-hinos-container {
+                max-height: 65vh !important; /* Ajuste conforme a necessidade */
+                overflow-y: auto !important;
+                scroll-behavior: smooth;
+                padding-bottom: 100px !important;
+                
+                display: block !important; /* Garante layout simples de lista */
+            }
         }
         
     </style>
