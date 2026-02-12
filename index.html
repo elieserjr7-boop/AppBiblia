@@ -2370,20 +2370,23 @@
         }
         
         /* 2. MODO PC (Telas maiores que 1024px) */
-        /* Só ativa o "modo janela" e o suporte a teclado se a tela for grande */
         @media (min-width: 1024px) {
             #tela-livros,
             #tela-capitulos,
             #lista-hinos-container {
-                /* Trava a altura para caber na tela sem rolar o site todo */
-                height: calc(100vh - 180px) !important; 
+                /* CORREÇÃO AQUI: */
+                height: auto !important; /* Deixa a altura livre para encolher */
                 
-                /* Habilita o scroll interno (necessário para o teclado funcionar) */
+                /* Define apenas o TETO máximo. Se passar disso, rola. Se for menor, ajusta. */
+                max-height: calc(100vh - 180px) !important; 
+                
+                /* Mantém a rolagem e o teclado funcionando quando a lista for grande */
                 overflow-y: auto !important; 
                 scroll-behavior: smooth;
                 
-                /* Ajuste fino da margem no PC */
-                padding-bottom: 10px !important; 
+                /* Estética */
+                padding-bottom: 10px !important;
+                display: block !important; /* Garante que não estique itens se for flex */
             }
         }
         
