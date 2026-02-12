@@ -2370,23 +2370,34 @@
         }
         
         /* 2. MODO PC (Telas maiores que 1024px) */
+        /* --- CORREÇÃO HINÁRIO: VISUAL CELULAR + FUNCIONALIDADE PC --- */
+
         @media (min-width: 1024px) {
-            #tela-livros,
-            #tela-capitulos,
+            
+            /* 1. A Caixa que Guarda os Hinos */
             #lista-hinos-container {
-                /* CORREÇÃO AQUI: */
-                height: auto !important; /* Deixa a altura livre para encolher */
+                /* O "Pulo do Gato": */
+                display: block !important; /* Garante que é uma lista simples (tira Grid/Flex que estica) */
+                height: auto !important;   /* A altura é exatamente o tamanho do conteúdo */
                 
-                /* Define apenas o TETO máximo. Se passar disso, rola. Se for menor, ajusta. */
-                max-height: calc(100vh - 180px) !important; 
-                
-                /* Mantém a rolagem e o teclado funcionando quando a lista for grande */
-                overflow-y: auto !important; 
-                scroll-behavior: smooth;
+                /* Cria a "Janela" para o Teclado funcionar */
+                max-height: calc(100vh - 200px) !important; 
+                overflow-y: auto !important;
                 
                 /* Estética */
-                padding-bottom: 10px !important;
-                display: block !important; /* Garante que não estique itens se for flex */
+                padding: 0 10px 50px 10px !important; /* Espaço nas laterais e fundo */
+            }
+        
+            /* 2. Os Botões dos Hinos (Garante que não fiquem gigantes) */
+            #lista-hinos-container button, 
+            #lista-hinos-container div {
+                /* Força o tamanho natural */
+                height: auto !important; 
+                min-height: 50px; /* Tamanho mínimo padrão do dedo */
+                margin-bottom: 10px; /* Espacinho padrão */
+                
+                /* Remove qualquer tentativa de esticar */
+                flex: none !important; 
             }
         }
         
