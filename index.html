@@ -5087,8 +5087,8 @@
             // Renderizar na Tela Cheia
             document.getElementById('apresentacao-titulo').innerText = titulo;
             indiceSlideAtual = 0;
-            renderizarSlide();
             document.getElementById('modo-apresentacao').classList.remove('escondido');
+            renderizarSlide();
             
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(()=>{});
@@ -5130,8 +5130,14 @@
             const rodape = isNaN(slide.num) ? slide.num : "Versículo " + slide.num;
             divRodape.innerText = rodape;
         
-            // 3. CHAMA A MÁGICA: Ajusta o tamanho da fonte para caber
-            ajustarFonteAoContainer(divTexto);
+            // --- CORREÇÃO AQUI ---
+            // Removemos qualquer tamanho fixo prévio para recalcular do zero
+            divTexto.style.fontSize = ""; 
+        
+            // Usamos setTimeout para esperar o navegador "respirar" e desenhar a tela
+            setTimeout(() => {
+                ajustarFonteAoContainer(divTexto);
+            }, 10); // 10ms é imperceptível para o olho, mas eterno para o processador
         }
 
         function ajustarFonteAoContainer(elemento) {
