@@ -2370,34 +2370,18 @@
         }
         
         /* 2. MODO PC (Telas maiores que 1024px) */
-        /* --- CORREÇÃO HINÁRIO: VISUAL CELULAR + FUNCIONALIDADE PC --- */
-
         @media (min-width: 1024px) {
-            
-            /* 1. A Caixa que Guarda os Hinos */
-            #lista-hinos-container {
-                /* O "Pulo do Gato": */
-                display: block !important; /* Garante que é uma lista simples (tira Grid/Flex que estica) */
-                height: auto !important;   /* A altura é exatamente o tamanho do conteúdo */
+            #tela-livros,
+            #tela-capitulos, {
+                /* Trava a altura para caber na tela sem rolar o site todo */
+                height: calc(100vh - 180px) !important; 
                 
-                /* Cria a "Janela" para o Teclado funcionar */
-                max-height: calc(100vh - 200px) !important; 
-                overflow-y: auto !important;
+                /* Habilita o scroll interno (necessário para o teclado funcionar) */
+                overflow-y: auto !important; 
+                scroll-behavior: smooth;
                 
-                /* Estética */
-                padding: 0 10px 50px 10px !important; /* Espaço nas laterais e fundo */
-            }
-        
-            /* 2. Os Botões dos Hinos (Garante que não fiquem gigantes) */
-            #lista-hinos-container button, 
-            #lista-hinos-container div {
-                /* Força o tamanho natural */
-                height: auto !important; 
-                min-height: 50px; /* Tamanho mínimo padrão do dedo */
-                margin-bottom: 10px; /* Espacinho padrão */
-                
-                /* Remove qualquer tentativa de esticar */
-                flex: none !important; 
+                /* Ajuste fino da margem no PC */
+                padding-bottom: 10px !important; 
             }
         }
         
