@@ -2357,60 +2357,35 @@
             color: #aaaaaa;
         }
 
-        /* --- COMPORTAMENTO HÍBRIDO (CELULAR vs PC) --- */
-        
-        /* 1. MODO CELULAR (Padrão) */
-        /* Aqui voltamos exatamente como era antes: a página cresce e rola inteira */
-        #tela-livros,
-        #tela-capitulos,
-        #lista-hinos-container {
-            height: auto !important;        /* Deixa crescer livremente */
-            overflow-y: visible !important; /* Remove barra de rolagem interna */
-            padding-bottom: 120px !important; /* Margem grande no fundo para não cortar atrás das abas */
+        /* --- HABILITAR ROLAGEM INTERNA (CRÍTICO PARA O TECLADO) --- */
+
+        /* 1. Lista de Livros (Bíblia) */
+        #tela-livros {
+            /* Define uma altura máxima: Ocupa 75% da altura da tela */
+            max-height: 75vh; 
+            /* Se passar disso, cria a barra de rolagem SÓ AQUI dentro */
+            overflow-y: auto; 
+            /* Rolagem suave */
+            scroll-behavior: smooth; 
+            
+            /* Mantém os seus ajustes visuais */
+            padding-bottom: 80px; /* Espaço extra no fim para não cortar o último botão */
         }
         
-        /* 2. MODO PC (Telas maiores que 1024px) */
-        @media (min-width: 1024px) {
-            #tela-capitulos {
-                /* 1. Configuração do Flexbox (Coluna) */
-                display: flex !important;
-                flex-direction: column !important;
-                
-                /* 2. Joga tudo para o topo (Resolve o bug do botão gigante em Malaquias) */
-                justify-content: flex-start !important; 
-                
-                /* 3. Configuração de Scroll e Tamanho */
-                height: calc(100vh - 200px) !important; 
-                overflow-y: auto !important;
-                scroll-behavior: smooth;
-                padding-bottom: 20px !important;
-            }
+        /* 2. Grade de Capítulos */
+        #tela-capitulos {
+            max-height: 70vh; /* Um pouco menor para caber o título */
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 80px;
+        }
         
-            /* --- REORDENAMENTO MÁGICO --- */
-            
-            /* Título (H3): Fica em 1º lugar */
-            #tela-capitulos h3 {
-                order: 1 !important;
-                flex-shrink: 0; /* Não deixa encolher */
-            }
-        
-            /* Botão "Escolher outro livro": Sobe para o 2º lugar */
-            #tela-capitulos button {
-                order: 2 !important;
-                margin-bottom: 15px !important; /* Espaço entre botão e grade */
-                margin-top: 5px !important;
-                flex-shrink: 0; /* Garante tamanho natural */
-                width: 100%;    /* Fica bonito ocupando a largura */
-            }
-        
-            /* Grade de Capítulos: Desce para o 3º lugar */
-            .grade-capitulos {
-                order: 3 !important;
-                /* Mantém o grid funcionando */
-                display: grid; 
-                /* Se tiver poucos capítulos, eles ficam no topo da grade */
-                align-content: start; 
-            }
+        /* 3. Lista de Hinos (Dentro da aba hinários) */
+        #lista-hinos-container {
+            max-height: 65vh; /* Ajuste conforme a necessidade */
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 100px;
         }
         
     </style>
@@ -5318,23 +5293,27 @@
             });
         }
 
-        /* --- CONTROLE DE SCROLL (APENAS BÍBLIA) --- */
+        /* --- CONTROLE INTELIGENTE DE SCROLL PELO TECLADO --- */
         document.addEventListener('keydown', function(e) {
             
             // 1. Só nos importamos com setas Cima e Baixo
             if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
         
-            // 2. Se o Modo Apresentação estiver aberto, sai fora
+            // 2. Se o Modo Apresentação estiver aberto, não fazemos nada (lá já tem a lógica dele)
             const modoApresentacao = document.getElementById('modo-apresentacao');
             if (modoApresentacao && !modoApresentacao.classList.contains('escondido')) return;
         
-            // 3. Identifica qual tela está visível
+            // 3. Identifica qual tela está visível no seu HTML agora
             let elementoParaRolar = null;
         
+            // Elementos baseados no seu HTML
             const telaLivros = document.getElementById('tela-livros');
             const telaCapitulos = document.getElementById('tela-capitulos');
+            const telaListaHinos = document.getElementById('tela-lista-hinos'); // A tela wrapper
+            const containerHinos = document.getElementById('lista-hinos-container'); // A lista que rola
         
             // VERIFICAÇÃO 1: Tela de Livros
+            // (Verifica se não tem a classe 'escondido' E se está visível na tela mesmo)
             if (telaLivros && !telaLivros.classList.contains('escondido') && telaLivros.offsetParent !== null) {
                 elementoParaRolar = telaLivros; 
             } 
@@ -5342,16 +5321,16 @@
             else if (telaCapitulos && !telaCapitulos.classList.contains('escondido') && telaCapitulos.offsetParent !== null) {
                 elementoParaRolar = telaCapitulos;
             }
-            
-            // NOTA: Removi a parte dos Hinos. Agora, quando estiver nos hinos, 
-            // essa variável continua "null". O código abaixo não roda, 
-            // e o navegador assume o scroll nativo da página (janela inteira).
+            // VERIFICAÇÃO 3: Lista de Hinos
+            else if (telaListaHinos && !telaListaHinos.classList.contains('escondido') && telaListaHinos.offsetParent !== null) {
+                elementoParaRolar = containerHinos; // Note que aqui rolamos o container interno
+            }
         
-            // 4. Executa a rolagem manual APENAS se for Bíblia
+            // 4. Executa a rolagem manual na div correta
             if (elementoParaRolar) {
-                e.preventDefault(); // Impede o navegador de mexer a tela inteira
+                e.preventDefault(); // Impede que o navegador role a página inteira atrás
         
-                const velocidade = 100; // Ajuste a velocidade aqui
+                const velocidade = 150; // Pixels por toque (aumente se quiser mais rápido)
         
                 if (e.key === 'ArrowDown') {
                     elementoParaRolar.scrollTop += velocidade;
