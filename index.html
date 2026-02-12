@@ -2371,17 +2371,45 @@
         
         /* 2. MODO PC (Telas maiores que 1024px) */
         @media (min-width: 1024px) {
-            #tela-livros,
             #tela-capitulos {
-                /* Trava a altura para caber na tela sem rolar o site todo */
-                height: calc(100vh - 180px) !important; 
+                /* 1. Configuração do Flexbox (Coluna) */
+                display: flex !important;
+                flex-direction: column !important;
                 
-                /* Habilita o scroll interno (necessário para o teclado funcionar) */
-                overflow-y: auto !important; 
+                /* 2. Joga tudo para o topo (Resolve o bug do botão gigante em Malaquias) */
+                justify-content: flex-start !important; 
+                
+                /* 3. Configuração de Scroll e Tamanho */
+                height: calc(100vh - 200px) !important; 
+                overflow-y: auto !important;
                 scroll-behavior: smooth;
-                
-                /* Ajuste fino da margem no PC */
-                padding-bottom: 10px !important; 
+                padding-bottom: 20px !important;
+            }
+        
+            /* --- REORDENAMENTO MÁGICO --- */
+            
+            /* Título (H3): Fica em 1º lugar */
+            #tela-capitulos h3 {
+                order: 1 !important;
+                flex-shrink: 0; /* Não deixa encolher */
+            }
+        
+            /* Botão "Escolher outro livro": Sobe para o 2º lugar */
+            #tela-capitulos button {
+                order: 2 !important;
+                margin-bottom: 15px !important; /* Espaço entre botão e grade */
+                margin-top: 5px !important;
+                flex-shrink: 0; /* Garante tamanho natural */
+                width: 100%;    /* Fica bonito ocupando a largura */
+            }
+        
+            /* Grade de Capítulos: Desce para o 3º lugar */
+            .grade-capitulos {
+                order: 3 !important;
+                /* Mantém o grid funcionando */
+                display: grid; 
+                /* Se tiver poucos capítulos, eles ficam no topo da grade */
+                align-content: start; 
             }
         }
         
