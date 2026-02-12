@@ -2357,24 +2357,34 @@
             color: #aaaaaa;
         }
 
-        /* --- HABILITAR ROLAGEM INTERNA (CRÍTICO PARA O TECLADO) --- */
-
-        /* --- ROLAGEM AJUSTADA (SEM ESPAÇO PRETO NO FINAL) --- */
-
-        #tela-livros, 
-        #tela-capitulos, 
-        #lista-hinos-container {
-            /* MUDANÇA 1: Altura Dinâmica */
-            /* Calcula: 100% da tela MENOS o espaço do topo e das abas (~180px) */
-            /* Isso faz a lista ir até o finalzinho sem sobrar espaço preto */
-            height: calc(100vh - 180px); 
-            
-            /* Permite a rolagem funcionar com o teclado */
-            overflow-y: auto;
-            scroll-behavior: smooth;
+        /* --- COMPORTAMENTO HÍBRIDO (CELULAR vs PC) --- */
         
-            /* MUDANÇA 2: Removi o espaço extra que você não gostou */
-            padding-bottom: 10px !important; 
+        /* 1. MODO CELULAR (Padrão) */
+        /* Aqui voltamos exatamente como era antes: a página cresce e rola inteira */
+        #tela-livros,
+        #tela-capitulos,
+        #lista-hinos-container {
+            height: auto !important;        /* Deixa crescer livremente */
+            overflow-y: visible !important; /* Remove barra de rolagem interna */
+            padding-bottom: 120px !important; /* Margem grande no fundo para não cortar atrás das abas */
+        }
+        
+        /* 2. MODO PC (Telas maiores que 1024px) */
+        /* Só ativa o "modo janela" e o suporte a teclado se a tela for grande */
+        @media (min-width: 1024px) {
+            #tela-livros,
+            #tela-capitulos,
+            #lista-hinos-container {
+                /* Trava a altura para caber na tela sem rolar o site todo */
+                height: calc(100vh - 180px) !important; 
+                
+                /* Habilita o scroll interno (necessário para o teclado funcionar) */
+                overflow-y: auto !important; 
+                scroll-behavior: smooth;
+                
+                /* Ajuste fino da margem no PC */
+                padding-bottom: 10px !important; 
+            }
         }
         
     </style>
