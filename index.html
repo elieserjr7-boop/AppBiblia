@@ -2216,20 +2216,31 @@
 
         /* 5. TEXTO DO VERSÍCULO (O Principal) */
         #apresentacao-texto {
-            font-size: 1.8rem;
-            line-height: 1.5;
+            /* Removemos o tamanho fixo, o JS vai decidir isso */
+            /* font-size: 1.8rem;  <-- PODE REMOVER OU COMENTAR ESSA LINHA */
+            
+            line-height: 1.4; /* Um pouco mais apertado ajuda a caber mais */
             font-weight: 500;
             
-            /* Herda a cor definida no pai, garantindo contraste */
             color: inherit; 
             
-            max-width: 900px;
-            max-height: 70vh;
-            overflow-y: auto;
+            width: 100%;       /* Garante uso total da largura */
+            max-width: 1000px; /* Um pouco mais largo */
+            
+            /* A MÁGICA: Define uma altura fixa para o container de texto */
+            height: 70vh;      /* Ocupa 70% da altura da tela */
+            
+            /* Tira a barra de rolagem */
+            overflow: hidden; 
+            
+            /* Centraliza verticalmente e horizontalmente */
+            display: flex;
+            align-items: center; 
+            justify-content: center;
             padding: 0 15px;
         }
 
-        @media (min-width: 768px) {
+        /*@media (min-width: 768px) {
             #apresentacao-texto { font-size: 2.8rem; line-height: 1.4; }
         }
 
@@ -5076,8 +5087,8 @@
             // Renderizar na Tela Cheia
             document.getElementById('apresentacao-titulo').innerText = titulo;
             indiceSlideAtual = 0;
-            renderizarSlide();
             document.getElementById('modo-apresentacao').classList.remove('escondido');
+            renderizarSlide();
             
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(()=>{});
@@ -5109,11 +5120,61 @@
             if (slidesApresentacao.length === 0) return;
             
             const slide = slidesApresentacao[indiceSlideAtual];
-            document.getElementById('apresentacao-texto').innerText = slide.texto;
+            const divTexto = document.getElementById('apresentacao-texto');
+            const divRodape = document.getElementById('apresentacao-rodape');
             
-            // Se for número, coloca "Versículo X", se for texto (estrofe), coloca direto
+            // 1. A CORTINA: Deixa invisível imediatamente para evitar o "piscada"
+            divTexto.style.opacity = "0";
+            // Remove a transição temporariamente para a mudança ser instantânea internamente
+            divTexto.style.transition = "none"; 
+            
+            // 2. Coloca o texto e o rodapé
+            divTexto.innerText = slide.texto;
             const rodape = isNaN(slide.num) ? slide.num : "Versículo " + slide.num;
-            document.getElementById('apresentacao-rodape').innerText = rodape;
+            divRodape.innerText = rodape;
+        
+            // 3. Reseta o tamanho da fonte para o padrão antes de calcular
+            divTexto.style.fontSize = ""; 
+        
+            // 4. Pequeno delay técnico (4ms) para o navegador renderizar o HTML oculto
+            // E então chamamos o ajuste que vai revelar o texto no final
+            setTimeout(() => {
+                ajustarFonteAoContainer(divTexto);
+            }, 4); 
+        }
+
+        function ajustarFonteAoContainer(elemento) {
+            // Configurações de tamanho (pode manter as suas)
+            let tamanhoMaximo = 70; // Começamos bem grande
+            let tamanhoMinimo = 14; 
+            
+            if (window.innerWidth < 768) {
+                tamanhoMaximo = 45; // Um pouco menor no celular
+            }
+        
+            let tamanhoAtual = tamanhoMaximo;
+            elemento.style.fontSize = tamanhoAtual + "px";
+        
+            // --- O CÁLCULO (Acontece enquanto está invisível) ---
+            // Enquanto o texto vazar da tela (altura ou largura), diminui a fonte
+            while (
+                (elemento.scrollHeight > elemento.clientHeight || 
+                 elemento.scrollWidth > elemento.clientWidth) && 
+                tamanhoAtual > tamanhoMinimo
+            ) {
+                tamanhoAtual--; // Diminui 1px
+                elemento.style.fontSize = tamanhoAtual + "px";
+            }
+        
+            // --- A REVELAÇÃO ---
+            // Agora que o tamanho está perfeito:
+            
+            // 1. (Opcional) Adiciona uma transição suave de opacidade (fade-in muito rápido)
+            // Se quiser que apareça seco, remova esta linha:
+            elemento.style.transition = "opacity 0.15s ease-out"; 
+            
+            // 2. Mostra o texto para o usuário
+            elemento.style.opacity = "1";
         }
 
         function mudarSlide(direcao) {
